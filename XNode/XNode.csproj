@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -48,7 +48,12 @@
     <None Remove="Assets\Icon16\Console.png" />
     <None Remove="Assets\Icon16\ExpandAll.png" />
     <None Remove="Assets\Icon16\FurlAll.png" />
+    <None Remove="Assets\Icon16\LinkedFolderOpened.png" />
     <None Remove="Assets\Icon16\NewFile.png" />
+    <None Remove="Assets\Icon16\NewFolder.png" />
+    <None Remove="Assets\Icon16\OpenFile.png" />
+    <None Remove="Assets\Icon16\Play.png" />
+    <None Remove="Assets\Icon16\Stop.png" />
     <None Remove="Assets\Icon16\Node\Calculator.png" />
     <None Remove="Assets\Icon16\Node\Chip.png" />
     <None Remove="Assets\Icon16\Node\CPU.png" />
@@ -68,7 +73,6 @@
     <None Remove="Assets\Icon16\Node\Timer.png" />
     <None Remove="Assets\Icon16\Node\Variate.png" />
     <None Remove="Assets\Icon16\Node\Volume.png" />
-    <None Remove="Assets\Icon16\OpenFile.png" />
     <None Remove="Assets\Icon16\Redo.png" />
     <None Remove="Assets\Icon16\Rename.png" />
     <None Remove="Assets\Icon16\Revert.png" />
@@ -145,6 +149,11 @@
     <Resource Include="Assets\Icon16\ExpandAll.png" />
     <Resource Include="Assets\Icon16\FurlAll.png" />
     <Resource Include="Assets\Icon16\NewFile.png" />
+    <Resource Include="Assets\Icon16\LinkedFolderOpened.png" />
+    <Resource Include="Assets\Icon16\NewFolder.png" />
+    <Resource Include="Assets\Icon16\OpenFile.png" />
+    <Resource Include="Assets\Icon16\Play.png" />
+    <Resource Include="Assets\Icon16\Stop.png" />
     <Resource Include="Assets\Icon16\Node\Calculator.png" />
     <Resource Include="Assets\Icon16\Node\Chip.png" />
     <Resource Include="Assets\Icon16\Node\CPU.png" />
@@ -164,7 +173,6 @@
     <Resource Include="Assets\Icon16\Node\Timer.png" />
     <Resource Include="Assets\Icon16\Node\Variate.png" />
     <Resource Include="Assets\Icon16\Node\Volume.png" />
-    <Resource Include="Assets\Icon16\OpenFile.png" />
     <Resource Include="Assets\Icon16\Redo.png" />
     <Resource Include="Assets\Icon16\Rename.png" />
     <Resource Include="Assets\Icon16\Revert.png" />
@@ -186,3 +194,5 @@
   </ItemGroup>
 
 </Project>
+
+

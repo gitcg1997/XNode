@@ -4,6 +4,7 @@ using XLib.Base;
 using XLib.Base.Ex;
 using XLib.Base.VirtualDisk;
 using XLib.Node;
+using XNode.SubSystem.NodeLibSystem.Define.Basics;
 using XNode.SubSystem.NodeLibSystem.Define.Data;
 using XNode.SubSystem.NodeLibSystem.Define.Drivers;
 using XNode.SubSystem.NodeLibSystem.Define.Events;
@@ -55,20 +56,29 @@ namespace XNode.SubSystem.NodeLibSystem
         {
             return typeString switch
             {
+                // 基础节点
+                nameof(StartNode) => new StartNode(),
+                nameof(EndNode) => new EndNode(),
+
+                // 数据节点
                 nameof(Data_Int) => new Data_Int(),
                 nameof(Data_Double) => new Data_Double(),
                 nameof(Data_String) => new Data_String(),
 
+                // 驱动节点
                 nameof(FrameDriver) => new FrameDriver(),
                 nameof(TimerDriver) => new TimerDriver(),
 
+                // 事件节点
                 nameof(Event_Keyboard) => new Event_Keyboard(),
 
+                // 流控制节点
                 nameof(Flow_If) => new Flow_If(),
                 nameof(Flow_LoopByCount) => new Flow_LoopByCount(),
                 nameof(Flow_While) => new Flow_While(),
                 nameof(Flow_Switch) => new Flow_Switch(),
 
+                // 函数节点
                 nameof(Func_Compare) => new Func_Compare(),
                 nameof(Func_NumberToRatio) => new Func_NumberToRatio(),
                 nameof(Func_RatioToInt) => new Func_RatioToInt(),
@@ -100,6 +110,7 @@ namespace XNode.SubSystem.NodeLibSystem
             // 创建根文件夹
             Folder 内置节点 = _nodeLibRoot.CreateFolder("内置节点".PackToList());
             // 创建一级文件夹
+            Folder 基础节点 = _nodeLibRoot.CreateFolder(内置节点, "基础节点".PackToList());
             Folder 驱动节点 = _nodeLibRoot.CreateFolder(内置节点, "驱动节点".PackToList());
             Folder 事件节点 = _nodeLibRoot.CreateFolder(内置节点, "事件节点".PackToList());
             Folder 函数节点 = _nodeLibRoot.CreateFolder(内置节点, "函数节点".PackToList());
@@ -110,6 +121,11 @@ namespace XNode.SubSystem.NodeLibSystem
             Folder 转换器 = _nodeLibRoot.CreateFolder(函数节点.Path.AppendElement("转换器"));
             Folder 执行控制 = _nodeLibRoot.CreateFolder(函数节点.Path.AppendElement("执行控制"));
             // 创建文件
+            // 基础节点
+            _nodeLibRoot.CreateFile(基础节点, "开始", "nt", new NodeType<StartNode>());
+            _nodeLibRoot.CreateFile(基础节点, "结束", "nt", new NodeType<EndNode>());
+
+            // 数据节点
             _nodeLibRoot.CreateFile(数据节点, "整数", "nt", new NodeType<Data_Int>());
             _nodeLibRoot.CreateFile(数据节点, "小数", "nt", new NodeType<Data_Double>());
             _nodeLibRoot.CreateFile(数据节点, "字符串", "nt", new NodeType<Data_String>());

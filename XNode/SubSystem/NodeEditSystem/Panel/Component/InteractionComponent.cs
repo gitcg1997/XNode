@@ -35,18 +35,21 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
             };
-            _host.LayerBox_ToolBar.Children.Add(_hoverToolBar);
+            _host.LayerToolBarCanvas.Children.Add(_hoverToolBar);
             _hoverToolBar.UpdateLayout();
             _hoverToolBar.Visibility = Visibility.Collapsed;
             _hoverToolBar.Init();
             _hoverToolBar.ToolClick += HoverToolBar_ToolClick;
+
+            // 监听清除拖放标志事件
+            XNode.SubSystem.EventSystem.EM.Instance.Add(XNode.SubSystem.EventSystem.EventType.ClearDropFlags, OnClearDropFlags);
         }
 
         protected override void Enable()
         {
-            _host.OperateArea.MouseMove += OperateArea_MouseMove;
-            _host.OperateArea.MouseDown += OperateArea_MouseDown;
-            _host.OperateArea.MouseUp += OperateArea_MouseUp;
+            _host.OperateAreaGrid.MouseMove += OperateArea_MouseMove;
+            _host.OperateAreaGrid.MouseDown += OperateArea_MouseDown;
+            _host.OperateAreaGrid.MouseUp += OperateArea_MouseUp;
         }
 
         protected override void Reset()
@@ -57,20 +60,20 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         protected override void Disable()
         {
             ResetComponent();
-            _host.OperateArea.MouseMove -= OperateArea_MouseMove;
-            _host.OperateArea.MouseDown -= OperateArea_MouseDown;
-            _host.OperateArea.MouseUp -= OperateArea_MouseUp;
+            _host.OperateAreaGrid.MouseMove -= OperateArea_MouseMove;
+            _host.OperateAreaGrid.MouseDown -= OperateArea_MouseDown;
+            _host.OperateAreaGrid.MouseUp -= OperateArea_MouseUp;
             _hoverToolBar.Visibility = Visibility.Collapsed;
         }
 
         protected override void Remove()
         {
             ResetComponent();
-            _host.OperateArea.MouseMove -= OperateArea_MouseMove;
-            _host.OperateArea.MouseDown -= OperateArea_MouseDown;
-            _host.OperateArea.MouseUp -= OperateArea_MouseUp;
+            _host.OperateAreaGrid.MouseMove -= OperateArea_MouseMove;
+            _host.OperateAreaGrid.MouseDown -= OperateArea_MouseDown;
+            _host.OperateAreaGrid.MouseUp -= OperateArea_MouseUp;
             _hoverToolBar.ToolClick -= HoverToolBar_ToolClick;
-            _host.LayerBox_ToolBar.Children.Remove(_hoverToolBar);
+            _host.LayerToolBarCanvas.Children.Remove(_hoverToolBar);
             _hoverToolBar = null;
         }
 
@@ -80,6 +83,10 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         public void HandleKeyDown(KeyEventArgs e)
         {
+            // 确认任何待确认的添加节点命令
+            var coreEditer = GetCoreEditer();
+            coreEditer?.CommandManager.ConfirmLastAddNodePosition();
+
             if (e.Key == Key.Delete)
             {
                 List<NodeView> cardList = GetComponent<CardComponent>().SelectedCardList;
@@ -108,28 +115,80 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// </summary>
         public void HandleDrop(List<ITreeItem> itemList)
         {
+            MainWindow.LogManager.LogInfo($"开始处理拖放操作, 拖放项数量: {itemList.Count}");
+
             // 获取屏幕坐标
-            var screenPoint = Mouse.GetPosition(_host.OperateArea);
+            var screenPoint = Mouse.GetPosition(_host.OperateAreaGrid);
+            MainWindow.LogManager.LogInfo($"拖放屏幕坐标: ({screenPoint.X:F2}, {screenPoint.Y:F2})");
+
             // 获取节点组件
             var component = GetComponent<NodeComponent>();
+            // 获取核心编辑器以执行命令
+            var coreEditer = GetCoreEditer();
             // 放下节点
             bool added = false;
             foreach (var item in itemList)
             {
                 if (item is File file && file.Instance is NodeType nodeType)
                 {
-                    // 放下并创建节点卡片
-                    NodeView? nodeView = component.DropNode(file.ID, nodeType, screenPoint);
-                    if (nodeView == null) continue;
-                    nodeView.NodeBackMouseEnter = NodeBack_MouseEnter;
-                    nodeView.NodeBackMouseLeave = NodeBack_MouseLeave;
-                    nodeView.PinGroupListChanged = PinGroupListChanged;
-                    nodeView.NodeChanged = NodeChanged;
-                    added = true;
+                    MainWindow.LogManager.LogInfo($"正在添加节点: {file.Name}, 类型: {nodeType.ToString()}");
+
+                    if (coreEditer != null)
+                    {
+                        // 创建节点实例
+                        var nodeInstance = nodeType.NewInstance();
+                        nodeInstance.PinBreaked += (start, end) => { /* 空实现,将在 LoadNode 中设置 */ };
+                        nodeInstance.TypeID = file.ID;
+
+                        // 获取世界坐标
+                        var worldPoint = GetComponent<DrawingComponent>().ScreenToWorld(screenPoint);
+                        // 设置节点编号、坐标
+                        nodeInstance.ID = component.GetNextNodeId();
+                        nodeInstance.Point = new NodePoint((int)worldPoint.X, (int)worldPoint.Y);
+
+                        MainWindow.LogManager.LogInfo($"节点世界坐标: ({worldPoint.X:F2}, {worldPoint.Y:F2}), 节点ID: {nodeInstance.ID}");
+
+                        // 执行添加节点命令,以支持撤销/重做
+                        coreEditer.ExecuteAddNodeCommand(nodeInstance);
+                        MainWindow.LogManager.LogInfo($"[调试] 拖放添加节点后 - {coreEditer.CommandManager.GetCommandStackStatus()}");
+
+                        // 标记刚刚拖放了节点，用于合并后续的移动操作
+                        _justDroppedNode = true;
+                        _droppedNodeId = nodeInstance.ID;
+
+                        added = true;
+                    }
+                    else
+                    {
+                        MainWindow.LogManager.LogWarning("无法获取核心编辑器,使用原始方法添加节点");
+
+                        // 如果无法获取核心编辑器,则使用原始方法
+                        NodeView? nodeView = component.DropNode(file.ID, nodeType, screenPoint);
+                        if (nodeView != null)
+                        {
+                            nodeView.NodeBackMouseEnter = NodeBack_MouseEnter;
+                            nodeView.NodeBackMouseLeave = NodeBack_MouseLeave;
+                            nodeView.PinGroupListChanged = PinGroupListChanged;
+                            nodeView.NodeChanged = NodeChanged;
+                            added = true;
+                        }
+                    }
+                }
+                else
+                {
+                    MainWindow.LogManager.LogWarning($"拖放项不是节点类型: {item?.GetType()?.Name ?? "null"}");
                 }
             }
 
-            if (added) ProjectManager.Instance.Saved = false;
+            if (added)
+            {
+                ProjectManager.Instance.Saved = false;
+                MainWindow.LogManager.LogInfo("节点添加成功, 项目状态已标记为未保存");
+            }
+            else
+            {
+                MainWindow.LogManager.LogWarning("未成功添加任何节点");
+            }
         }
 
         /// <summary>
@@ -156,14 +215,32 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         #region 工具方法
 
         /// <summary>
+        /// 获取核心编辑器
+        /// </summary>
+        private CoreEditer? GetCoreEditer()
+        {
+            // 从EditPanel向上查找CoreEditer
+            DependencyObject current = _host;
+            while (current != null)
+            {
+                current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+                if (current is CoreEditer coreEditer)
+                {
+                    return coreEditer;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// 捕获操作图层
         /// </summary>
-        public void CaptureOperationLayer() => _host.OperateArea.CaptureMouse();
+        public void CaptureOperationLayer() => _host.OperateAreaGrid.CaptureMouse();
 
         /// <summary>
         /// 释放操作图层
         /// </summary>
-        public void ReleaseOperationLayer() => _host.OperateArea.ReleaseMouseCapture();
+        public void ReleaseOperationLayer() => _host.OperateAreaGrid.ReleaseMouseCapture();
 
         /// <summary>
         /// 获取鼠标命中区域
@@ -199,16 +276,16 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             if (_hoveredNodeView != null && _hoveredNodeView.HoveredPin != null)
                 _tool.Cursor = CursorManager.Instance.Cross;
             // 设置光标
-            _host.OperateArea.Cursor = _tool.Cursor;
+            _host.OperateAreaGrid.Cursor = _tool.Cursor;
 
             // 更新悬停连接线
-            GetComponent<DrawingComponent>().UpdateHoveredConnectLine(Mouse.GetPosition(_host.OperateArea));
+            GetComponent<DrawingComponent>().UpdateHoveredConnectLine(Mouse.GetPosition(_host.OperateAreaGrid));
         }
 
         /// <summary>
         /// 移除节点焦点
         /// </summary>
-        public void RemoveNodeFocus() => _host.OperateArea.Focus();
+        public void RemoveNodeFocus() => _host.OperateAreaGrid.Focus();
 
         /// <summary>
         /// 启动并执行节点
@@ -219,6 +296,8 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             _hoveredNodeView.NodeInstance.Execute();
         }
 
+
+
         #region 选择
 
         public bool CurrentNodeSelected() =>
@@ -228,7 +307,19 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         public void AddSelect()
         {
+            MainWindow.LogManager.LogInfo($"[调试] 添加选择 - 悬停节点: {_hoveredNodeView?.NodeInstance.Title ?? "null"}");
             GetComponent<CardComponent>().AddSelect(_hoveredNodeView);
+            GetComponent<DrawingComponent>().UpdateSelectedBox();
+            UpdateHoverToolBar();
+            UpdatePropertyPanel();
+        }
+
+        /// <summary>
+        /// 添加指定节点到选择列表
+        /// </summary>
+        public void AddSelect(NodeView nodeView)
+        {
+            GetComponent<CardComponent>().AddSelect(nodeView);
             GetComponent<DrawingComponent>().UpdateSelectedBox();
             UpdateHoverToolBar();
             UpdatePropertyPanel();
@@ -244,6 +335,9 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         public void ClearSelect()
         {
+            // 注意：不在这里确认节点位置，因为拖放后选中节点时会调用此方法
+            // 确认逻辑移到其他更合适的地方
+
             GetComponent<CardComponent>().ClearSelect();
             GetComponent<DrawingComponent>().UpdateSelectedBox();
             UpdateHoverToolBar();
@@ -254,12 +348,12 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         #region 选框
 
-        public void BeginDrawSelectBox() => _mouseDown = Mouse.GetPosition(_host.OperateArea);
+        public void BeginDrawSelectBox() => _mouseDown = Mouse.GetPosition(_host.OperateAreaGrid);
 
         public void CancelDrawSelectBox() => GetComponent<DrawingComponent>().ClearSelectBox();
 
         public void DrawSelectBox() =>
-            GetComponent<DrawingComponent>().UpdateSelectBox(_mouseDown, Mouse.GetPosition(_host.OperateArea));
+            GetComponent<DrawingComponent>().UpdateSelectBox(_mouseDown, Mouse.GetPosition(_host.OperateAreaGrid));
 
         public void EndDrawSelectBox()
         {
@@ -296,19 +390,19 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         public void BeginDragNode()
         {
-            _host.OperateArea.Cursor = CursorManager.Instance.SelectAndMove;
-            _mouseDown = Mouse.GetPosition(_host.OperateArea);
+            _host.OperateAreaGrid.Cursor = CursorManager.Instance.SelectAndMove;
+            _mouseDown = Mouse.GetPosition(_host.OperateAreaGrid);
         }
 
         public void CancelDragNode()
         {
-            _host.OperateArea.Cursor = _tool.Cursor;
+            _host.OperateAreaGrid.Cursor = _tool.Cursor;
         }
 
         public void DragNode()
         {
             // 更新当前坐标
-            _mousePoint = Mouse.GetPosition(_host.OperateArea);
+            _mousePoint = Mouse.GetPosition(_host.OperateAreaGrid);
             // 计算偏移
             Point offset = new Point(_mousePoint.X - _mouseDown.X, _mousePoint.Y - _mouseDown.Y);
             // 对齐网格
@@ -334,8 +428,75 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         public void EndDragNode()
         {
-            _host.OperateArea.Cursor = _tool.Cursor;
-            foreach (var card in GetComponent<CardComponent>().SelectedCardList) card.ApplyOffset();
+            _host.OperateAreaGrid.Cursor = _tool.Cursor;
+
+            // 获取核心编辑器以执行命令
+            var coreEditer = GetCoreEditer();
+            if (coreEditer != null)
+            {
+                // 智能节点移动处理
+                MainWindow.LogManager.LogInfo($"[调试] EndDragNode - _justDroppedNode: {_justDroppedNode}, SelectedCount: {GetComponent<CardComponent>().SelectedCardList.Count}, _droppedNodeId: {_droppedNodeId}");
+
+                bool smartUpdateSucceeded = false; // 跟踪智能更新是否成功
+
+                // 为每个移动的节点处理位置更新
+                foreach (var card in GetComponent<CardComponent>().SelectedCardList)
+                {
+                    // 保存移动前的节点位置(在应用偏移前)
+                    var oldPosition = new XLib.Node.NodePoint(card.NodeInstance.Point.X, card.NodeInstance.Point.Y);
+
+                    // 应用偏移，这将更新节点的真实坐标
+                    card.ApplyOffset();
+
+                    // 获取移动后的位置
+                    var newPosition = new XLib.Node.NodePoint(card.NodeInstance.Point.X, card.NodeInstance.Point.Y);
+
+                    // 只有在位置真正发生变化时才处理
+                    if (oldPosition.X != newPosition.X || oldPosition.Y != newPosition.Y)
+                    {
+                        // 尝试智能更新最后一个添加节点命令的位置（如果是拖放后的移动）
+                        if (_justDroppedNode && _droppedNodeId == card.NodeInstance.ID)
+                        {
+                            bool updated = coreEditer.CommandManager.TryUpdateLastAddNodePosition(card.NodeInstance.ID, newPosition);
+                            if (updated)
+                            {
+                                MainWindow.LogManager.LogInfo($"智能更新拖放节点位置: {card.NodeInstance.Title} -> ({newPosition.X}, {newPosition.Y})");
+                                smartUpdateSucceeded = true;
+                                continue; // 跳过创建移动命令
+                            }
+                            else
+                            {
+                                MainWindow.LogManager.LogInfo($"智能更新失败，节点已被确认: {card.NodeInstance.Title}");
+                                // 智能更新失败，清除拖放标志
+                                _justDroppedNode = false;
+                                _droppedNodeId = -1;
+                            }
+                        }
+                        // 注意：移动其他节点时不清除拖放标志，让拖放的节点仍然可以进行智能更新
+
+                        // 创建普通移动命令
+                        // 先恢复到旧位置
+                        card.NodeInstance.Point.X = oldPosition.X;
+                        card.NodeInstance.Point.Y = oldPosition.Y;
+
+                        // 执行移动节点命令，以支持撤销/重做
+                        coreEditer.ExecuteMoveNodeCommand(card.NodeInstance, oldPosition, newPosition);
+                        MainWindow.LogManager.LogInfo($"执行移动节点命令: {card.NodeInstance.Title} 从 ({oldPosition.X},{oldPosition.Y}) 到 ({newPosition.X},{newPosition.Y})");
+                    }
+                }
+
+                // 不再清除拖放标志，让智能合并系统持续工作
+                // 拖放标志只会在执行其他类型命令时被CommandManager自动清除
+            }
+            else
+            {
+                // 如果无法获取核心编辑器，则直接应用偏移
+                foreach (var card in GetComponent<CardComponent>().SelectedCardList) card.ApplyOffset();
+
+                // 清除拖放标志
+                _justDroppedNode = false;
+                _droppedNodeId = -1;
+            }
         }
 
         #endregion
@@ -347,7 +508,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             // 设置起始引脚
             _startPin = _hoveredNodeView.HoveredPin;
             // 设置鼠标坐标
-            _mouseDown = Mouse.GetPosition(_host.OperateArea);
+            _mouseDown = Mouse.GetPosition(_host.OperateAreaGrid);
             // 获取引脚与鼠标的偏移量
             Point offset = _hoveredNodeView.GetHoveredPinOffset();
             // 计算引脚连接点坐标
@@ -364,7 +525,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         public void DrawConnectLine()
         {
             // 更新鼠标坐标
-            _mousePoint = Mouse.GetPosition(_host.OperateArea);
+            _mousePoint = Mouse.GetPosition(_host.OperateAreaGrid);
             if (_hoveredNodeView != null && _hoveredNodeView.HoveredPin != null)
             {
                 // 获取引脚与鼠标的偏移量
@@ -389,33 +550,62 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
                 PinBase endPin = _hoveredNodeView.HoveredPin;
                 // 无法连接
                 if (!CanConnect(_startPin, endPin)) return;
-                // 连接引脚：将结束引脚写入起始引脚
+
+                // 获取核心编辑器
+                var coreEditer = GetCoreEditer();
+
+                // 确认任何待确认的添加节点命令
+                coreEditer?.CommandManager.ConfirmLastAddNodePosition();
+
+                // 确定源引脚和目标引脚
+                PinBase sourcePin, targetPin;
                 if (_startPin.Flow == PinFlow.Input)
                 {
-                    // 如果是数据引脚，先移除原有的连接线
-                    if (_startPin is DataPin && _startPin.SourceList.Count > 0)
-                        GetComponent<DrawingComponent>().RemoveConnectLine(_startPin.SourceList[0], _startPin);
-                    // 连接源与目标。数据引脚会自动断开原有连接
-                    _startPin.AddSource(endPin);
-                    endPin.AddTarget(_startPin);
-                    // 添加连接线
-                    GetComponent<DrawingComponent>().AddConnectLine(endPin, _startPin);
+                    sourcePin = endPin;
+                    targetPin = _startPin;
                 }
                 else
                 {
-                    // 如果是数据引脚，先移除原有的连接线
-                    if (endPin is DataPin && endPin.SourceList.Count > 0)
-                        GetComponent<DrawingComponent>().RemoveConnectLine(endPin.SourceList[0], endPin);
-                    // 连接源与目标。数据引脚会自动断开原有连接
-                    _startPin.AddTarget(endPin);
-                    endPin.AddSource(_startPin);
-                    // 添加连接线
-                    GetComponent<DrawingComponent>().AddConnectLine(_startPin, endPin);
+                    sourcePin = _startPin;
+                    targetPin = endPin;
                 }
-                // 更新引脚图标
-                UpdateAllPinIcon();
 
-                ProjectManager.Instance.Saved = false;
+                // 使用命令系统执行连接
+                if (coreEditer != null)
+                {
+                    coreEditer.ExecuteConnectPinCommand(sourcePin, targetPin);
+                }
+                else
+                {
+                    // 如果无法获取核心编辑器,使用原始方法
+                    // 连接引脚：将结束引脚写入起始引脚
+                    if (_startPin.Flow == PinFlow.Input)
+                    {
+                        // 如果是数据引脚，先移除原有的连接线
+                        if (_startPin is DataPin && _startPin.SourceList.Count > 0)
+                            GetComponent<DrawingComponent>().RemoveConnectLine(_startPin.SourceList[0], _startPin);
+                        // 连接源与目标。数据引脚会自动断开原有连接
+                        _startPin.AddSource(endPin);
+                        endPin.AddTarget(_startPin);
+                        // 添加连接线
+                        GetComponent<DrawingComponent>().AddConnectLine(endPin, _startPin);
+                    }
+                    else
+                    {
+                        // 如果是数据引脚，先移除原有的连接线
+                        if (endPin is DataPin && endPin.SourceList.Count > 0)
+                            GetComponent<DrawingComponent>().RemoveConnectLine(endPin.SourceList[0], endPin);
+                        // 连接源与目标。数据引脚会自动断开原有连接
+                        _startPin.AddTarget(endPin);
+                        endPin.AddSource(_startPin);
+                        // 添加连接线
+                        GetComponent<DrawingComponent>().AddConnectLine(_startPin, endPin);
+                    }
+                    // 更新引脚图标
+                    UpdateAllPinIcon();
+
+                    ProjectManager.Instance.Saved = false;
+                }
             }
             _startPin = null;
         }
@@ -430,25 +620,50 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         public void EndBreakPin()
         {
+            // 获取核心编辑器
+            var coreEditer = GetCoreEditer();
+
             // 命中输入节点，则与源断开
             if (_rightHitedPin.Flow == PinFlow.Input)
             {
                 List<PinBase> sourceList = new List<PinBase>(_rightHitedPin.SourceList);
-                foreach (var source in sourceList) BreakPin(source, _rightHitedPin);
+                foreach (var source in sourceList)
+                {
+                    if (coreEditer != null)
+                    {
+                        coreEditer.ExecuteDisconnectPinCommand(source, _rightHitedPin);
+                    }
+                    else
+                    {
+                        BreakPin(source, _rightHitedPin);
+                    }
+                }
             }
             // 否则与目标断开
             else
             {
                 List<PinBase> targetList = new List<PinBase>(_rightHitedPin.TargetList);
-                foreach (var target in targetList) BreakPin(_rightHitedPin, target);
+                foreach (var target in targetList)
+                {
+                    if (coreEditer != null)
+                    {
+                        coreEditer.ExecuteDisconnectPinCommand(_rightHitedPin, target);
+                    }
+                    else
+                    {
+                        BreakPin(_rightHitedPin, target);
+                    }
+                }
             }
 
             // 更新引脚图标
-            UpdateAllPinIcon();
+            if (coreEditer == null)
+            {
+                UpdateAllPinIcon();
+                ProjectManager.Instance.Saved = false;
+            }
 
             _rightHitedPin = null;
-
-            ProjectManager.Instance.Saved = false;
         }
 
         #endregion
@@ -460,10 +675,22 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             // 获取连接线
             Layer.VisualConnectLine? connectLine = GetComponent<DrawingComponent>().HoveredConnectLine;
             if (connectLine == null) return;
-            // 断开引脚
-            BreakPin(connectLine.StartPin, connectLine.EndPin);
-            // 更新引脚图标
-            UpdateAllPinIcon();
+
+            // 获取核心编辑器
+            var coreEditer = GetCoreEditer();
+
+            if (coreEditer != null)
+            {
+                // 使用命令系统断开引脚
+                coreEditer.ExecuteDisconnectPinCommand(connectLine.StartPin, connectLine.EndPin);
+            }
+            else
+            {
+                // 断开引脚
+                BreakPin(connectLine.StartPin, connectLine.EndPin);
+                // 更新引脚图标
+                UpdateAllPinIcon();
+            }
         }
 
         #endregion
@@ -472,25 +699,25 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         public void BeginDragViewport()
         {
-            _host.OperateArea.Cursor = CursorManager.Instance.Move;
-            _mouseDown = Mouse.GetPosition(_host.OperateArea);
+            _host.OperateAreaGrid.Cursor = CursorManager.Instance.Move;
+            _mouseDown = Mouse.GetPosition(_host.OperateAreaGrid);
         }
 
         public void CancelDragViewport()
         {
-            _host.OperateArea.Cursor = _tool.Cursor;
+            _host.OperateAreaGrid.Cursor = _tool.Cursor;
         }
 
         public void DragViewport()
         {
-            _mousePoint = Mouse.GetPosition(_host.OperateArea);
+            _mousePoint = Mouse.GetPosition(_host.OperateAreaGrid);
             GetComponent<DrawingComponent>().DragViewport(new Point(_mousePoint.X - _mouseDown.X, _mousePoint.Y - _mouseDown.Y));
             UpdateHoverToolBar();
         }
 
         public void EndDragViewport()
         {
-            _host.OperateArea.Cursor = _tool.Cursor;
+            _host.OperateAreaGrid.Cursor = _tool.Cursor;
             GetComponent<DrawingComponent>().EndDrag();
         }
 
@@ -629,12 +856,15 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             // 选中数量
             int selectedCount = GetComponent<CardComponent>().SelectedCardList.Count;
             // 显隐属性面板
-            _host.PropertyArea.Visibility = selectedCount == 0 ? Visibility.Collapsed : Visibility.Visible;
+            var propertyArea = (Border)_host.FindName("PropertyArea");
+            var propertyPanel = (XNode.SubSystem.NodeEditSystem.Control.NodePropertyPanel)_host.FindName("PropertyPanel");
+            
+            propertyArea.Visibility = selectedCount == 0 ? Visibility.Collapsed : Visibility.Visible;
 
             if (selectedCount == 0)
             {
-                _host.PropertyPanel.Instance = null;
-                _host.PropertyPanel.ClearPropertyBar();
+                propertyPanel.Instance = null;
+                propertyPanel.ClearPropertyBar();
             }
             else
             {
@@ -642,13 +872,13 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
                 NodeView firstCard = GetComponent<CardComponent>().SelectedCardList[0];
                 if (firstCard.NodeInstance.PropertyList.Count == 0)
                 {
-                    _host.PropertyArea.Visibility = Visibility.Collapsed;
+                    propertyArea.Visibility = Visibility.Collapsed;
                     return;
                 }
 
                 // 加载属性条
-                _host.PropertyPanel.Instance = firstCard.NodeInstance;
-                _host.PropertyPanel.LoadPropertyBar();
+                propertyPanel.Instance = firstCard.NodeInstance;
+                propertyPanel.LoadPropertyBar();
             }
         }
 
@@ -686,14 +916,31 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// </summary>
         private void DeleteNode(List<NodeView> cardList)
         {
-            // 删除节点实例与卡片
-            foreach (var card in cardList)
+            // 获取核心编辑器
+            var coreEditer = GetCoreEditer();
+
+            if (coreEditer != null)
             {
-                GetComponent<NodeComponent>().DeleteNode(card.NodeInstance);
-                GetComponent<CardComponent>().DeleteNodeCard(card);
+                // 使用命令系统删除节点
+                foreach (var card in cardList)
+                {
+                    coreEditer.ExecuteDeleteNodeCommand(card.NodeInstance);
+                }
             }
-            // 更新引脚图标
-            UpdateAllPinIcon();
+            else
+            {
+                // 删除节点实例与卡片
+                foreach (var card in cardList)
+                {
+                    GetComponent<NodeComponent>().DeleteNode(card.NodeInstance);
+                    GetComponent<CardComponent>().DeleteNodeCard(card);
+                }
+                // 更新引脚图标
+                UpdateAllPinIcon();
+
+                ProjectManager.Instance.Saved = false;
+            }
+
             // 清空选择
             GetComponent<CardComponent>().ClearSelect();
             // 更新选中框
@@ -704,8 +951,6 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             UpdatePropertyPanel();
             // 更新鼠标悬停
             HandleMouseMove();
-
-            ProjectManager.Instance.Saved = false;
         }
 
         /// <summary>
@@ -725,9 +970,12 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             _rightHitedPin = null;
 
             _hoverToolBar.Visibility = Visibility.Collapsed;
-            _host.PropertyPanel.Instance = null;
-            _host.PropertyPanel.ClearPropertyBar();
-            _host.PropertyArea.Visibility = Visibility.Collapsed;
+            var propertyArea = (Border)_host.FindName("PropertyArea");
+            var propertyPanel = (XNode.SubSystem.NodeEditSystem.Control.NodePropertyPanel)_host.FindName("PropertyPanel");
+            
+            propertyPanel.Instance = null;
+            propertyPanel.ClearPropertyBar();
+            propertyArea.Visibility = Visibility.Collapsed;
         }
 
         #endregion
@@ -751,6 +999,28 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         /// <summary>悬浮工具栏</summary>
         private HoverToolBar _hoverToolBar;
+
+        /// <summary>标记刚刚拖放了节点</summary>
+        private bool _justDroppedNode = false;
+        /// <summary>拖放的节点ID</summary>
+        private int _droppedNodeId = -1;
+
+        #endregion
+
+        #region 事件处理
+
+        /// <summary>
+        /// 清除拖放标志事件处理
+        /// </summary>
+        private void OnClearDropFlags()
+        {
+            if (_justDroppedNode)
+            {
+                MainWindow.LogManager.LogInfo($"通过事件系统清除拖放标志，节点ID: {_droppedNodeId}");
+                _justDroppedNode = false;
+                _droppedNodeId = -1;
+            }
+        }
 
         #endregion
     }

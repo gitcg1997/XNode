@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using XNode.Command;
 using XLib.Node;
 using XNode.SubSystem.NodeEditSystem.Define;
 using XNode.SubSystem.ProjectSystem;
@@ -12,6 +13,9 @@ namespace XNode
 
         /// <summary>节点列表</summary>
         public List<NodeBase> NodeList => Panel_NodeEditer.NodeList;
+
+        /// <summary>命令管理器</summary>
+        public CommandManager CommandManager { get; } = CommandManager.Instance;
 
         #endregion
 
@@ -42,6 +46,61 @@ namespace XNode
         /// </summary>
         public PinBase? FindPin(PinPath path) => Panel_NodeEditer.FindPin(path);
 
+        /// <summary>
+        /// 执行添加节点命令
+        /// </summary>
+        public void ExecuteAddNodeCommand(NodeBase node)
+        {
+            ICommand command = new AddNodeCommand(this, node);
+            CommandManager.ExecuteCommand(command);
+            MainWindow.LogManager.LogInfo($"添加节点命令已执行, CanUndo: {CommandManager.CanUndo}");
+        }
+
+        /// <summary>
+        /// 执行删除节点命令
+        /// </summary>
+        public void ExecuteDeleteNodeCommand(NodeBase node)
+        {
+            ICommand command = new DeleteNodeCommand(this, node);
+            CommandManager.ExecuteCommand(command);
+        }
+
+        /// <summary>
+        /// 执行移动节点命令
+        /// </summary>
+        public void ExecuteMoveNodeCommand(NodeBase node, NodePoint oldPosition, NodePoint newPosition)
+        {
+            ICommand command = new MoveNodeCommand(node, oldPosition, newPosition);
+            CommandManager.ExecuteCommand(command);
+            MainWindow.LogManager.LogInfo($"移动节点命令已执行, 从 ({oldPosition.X},{oldPosition.Y}) 到 ({newPosition.X},{newPosition.Y})");
+        }
+
+        /// <summary>
+        /// 执行连接引脚命令
+        /// </summary>
+        public void ExecuteConnectPinCommand(PinBase sourcePin, PinBase targetPin)
+        {
+            ICommand command = new ConnectPinCommand(this, sourcePin, targetPin);
+            CommandManager.ExecuteCommand(command);
+        }
+
+        /// <summary>
+        /// 执行断开引脚命令
+        /// </summary>
+        public void ExecuteDisconnectPinCommand(PinBase sourcePin, PinBase targetPin)
+        {
+            ICommand command = new DisconnectPinCommand(this, sourcePin, targetPin);
+            CommandManager.ExecuteCommand(command);
+        }
+
+        /// <summary>
+        /// 获取编辑面板实例
+        /// </summary>
+        public SubSystem.NodeEditSystem.Panel.EditPanel GetEditPanel()
+        {
+            return Panel_NodeEditer;
+        }
+
         #endregion
 
         #region 控件事件
@@ -66,6 +125,9 @@ namespace XNode
             Panel_NodeEditer.Init();
             // 初始化节点库面板
             Panel_NodeLib.Init();
+            
+            // 注意：执行器事件连接已在MainWindow中处理，这里不再需要重复连接
+            // 执行器实例在MainWindow中创建和管理
         }
 
         #endregion

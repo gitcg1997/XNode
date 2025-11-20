@@ -7,8 +7,44 @@
         xmlns:xw="clr-namespace:XLib.WPF.WindowDefine;assembly=XLib.WPF"
         mc:Ignorable="d"
         Style="{StaticResource XMainWindowStyle}"
-        FontFamily="Assets/Font/#新宋体" WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterScreen"
         Title="XNode 1.0.0 Alpha" Height="720" Width="1280" MinWidth="1024" MinHeight="576"
         PreviewKeyDown="XMainWindow_PreviewKeyDown" PreviewKeyUp="XMainWindow_PreviewKeyUp">
-    <Grid Background="Transparent" x:Name="MainGrid"/>
+    <Grid Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="200" Name="LogAreaRow"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 主内容区域 -->
+        <Grid Grid.Row="0" x:Name="MainGrid"/>
+        
+        <!-- 日志区域控制栏 -->
+        <Border Grid.Row="1" Background="#1A1A1A" BorderBrush="#333333" BorderThickness="0,1,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="LogToggleButton" Grid.Column="0" Content="日志输出" HorizontalAlignment="Left" 
+                        VerticalAlignment="Center" Margin="5,0,0,0" Background="Transparent" 
+                        Foreground="#CCCCCC" BorderThickness="1" BorderBrush="#333333"
+                        Click="LogToggleButton_Click"/>
+                <Button x:Name="ClearLogButton" Grid.Column="1" Content="清空" HorizontalAlignment="Left" 
+                        VerticalAlignment="Center" Margin="5,0,0,0" Background="Transparent" 
+                        Foreground="#CCCCCC" BorderThickness="1" BorderBrush="#333333"
+                        Click="ClearLogButton_Click"/>
+            </Grid>
+        </Border>
+        
+        <!-- 日志输出区域 -->
+        <Grid Grid.Row="2" x:Name="LogOutputArea" Background="#1E1E1E" Visibility="Visible">
+            <TextBox x:Name="LogTextBox" Background="#1E1E1E" Foreground="#CCCCCC"
+                     BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                     VerticalContentAlignment="Top"/>
+        </Grid>
+    </Grid>
 </xw:XMainWindow>

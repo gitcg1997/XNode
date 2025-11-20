@@ -47,7 +47,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         protected override void Init()
         {
             EnableLayer();
-            _host.OperateArea.SizeChanged += OperateArea_SizeChanged;
+            _host.OperateAreaGrid.SizeChanged += OperateArea_SizeChanged;
         }
 
         protected override void Reset() => ResetLayer();
@@ -234,6 +234,24 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// </summary>
         public void EndDrag() => _gridLayer.ApplyOffset();
 
+        /// <summary>
+        /// 添加自定义图层
+        /// </summary>
+        public void AddCustomLayer(UIElement layer)
+        {
+            Host.LayerBoxGrid.Children.Add(layer);
+        }
+
+        /// <summary>
+        /// 获取图层宽度
+        /// </summary>
+        public double GetLayerWidth() => Host.OperateAreaGrid.ActualWidth;
+
+        /// <summary>
+        /// 获取图层高度
+        /// </summary>
+        public double GetLayerHeight() => Host.OperateAreaGrid.ActualHeight;
+
         #endregion
 
         #region 控件事件
@@ -265,13 +283,13 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             _selectBoxLayer = new SelectBoxLayer();
             _tempLineLayer = new TempConnectLineLayer();
             // 添加图层
-            Host.Layer_Base.Children.Add(_gridLayer);
-            Host.Layer_Base.Children.Add(_lineBackLayer);
-            Host.Layer_Base.Children.Add(_connectLineLayer);
-            Host.Layer_Box.Children.Add(_hoverBoxLayer);
-            Host.Layer_Box.Children.Add(_selectedBoxLayer);
-            Host.Layer_Box.Children.Add(_selectBoxLayer);
-            Host.Layer_Temp.Children.Add(_tempLineLayer);
+            Host.LayerBaseGrid.Children.Add(_gridLayer);
+            Host.LayerBaseGrid.Children.Add(_lineBackLayer);
+            Host.LayerBaseGrid.Children.Add(_connectLineLayer);
+            Host.LayerBoxGrid.Children.Add(_hoverBoxLayer);
+            Host.LayerBoxGrid.Children.Add(_selectedBoxLayer);
+            Host.LayerBoxGrid.Children.Add(_selectBoxLayer);
+            Host.LayerTempGrid.Children.Add(_tempLineLayer);
             // 更新图层尺寸
             UpdateLayerSize();
             // 更新网格
@@ -303,8 +321,8 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// </summary>
         private void UpdateLayerSize()
         {
-            double width = Host.OperateArea.ActualWidth;
-            double height = Host.OperateArea.ActualHeight;
+            double width = Host.OperateAreaGrid.ActualWidth;
+            double height = Host.OperateAreaGrid.ActualHeight;
 
             _gridLayer.Width = width;
             _gridLayer.Height = height;

@@ -12,5 +12,8 @@
 
         /// <summary>项目已加载</summary>
         Project_Loaded,
+
+        /// <summary>清除拖放标志</summary>
+        ClearDropFlags,
     }
 }

@@ -104,20 +104,27 @@ namespace XNode.SubSystem.NodeEditSystem.Panel
         {
             NewTree("命中节点", (_) =>
             {
+                MainWindow.LogManager.LogInfo($"[调试] 命中节点开始 - 悬停节点: {_host.HoveredCard?.NodeInstance.Title ?? "null"}");
                 // 清除悬停框
                 _host.ClearHoverBox();
-                // 按下了“Ctrl”键，加选或减选
+                // 按下了"Ctrl"键，加选或减选
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
+                    MainWindow.LogManager.LogInfo($"[调试] Ctrl键按下 - 当前选中状态: {_host.CurrentNodeSelected()}");
                     if (_host.CurrentNodeSelected()) _host.RemoveSelect();
                     else _host.AddSelect();
                 }
                 // 当前节点未选中
                 else if (!_host.CurrentNodeSelected())
                 {
+                    MainWindow.LogManager.LogInfo($"[调试] 节点未选中，准备选中 - 清除选择、设置置顶、添加选择");
                     _host.ClearSelect();
                     _host.SetTop();
                     _host.AddSelect();
+                }
+                else
+                {
+                    MainWindow.LogManager.LogInfo($"[调试] 节点已选中，继续拖动");
                 }
                 // 开始拖动节点
                 _host.BeginDragNode();
