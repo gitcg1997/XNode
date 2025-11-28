@@ -30,8 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XLib.Math", "XLib.Math\XLib
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XLib.Sample", "XLib.Sample\XLib.Sample.csproj", "{AAAE007A-011A-4C3F-9F82-93D0B8D6A102}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodeLib.Automation", "NodeLib.Automation\NodeLib.Automation.csproj", "{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}"
-EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -174,18 +173,7 @@ Global
 		{AAAE007A-011A-4C3F-9F82-93D0B8D6A102}.Release|x64.Build.0 = Release|Any CPU
 		{AAAE007A-011A-4C3F-9F82-93D0B8D6A102}.Release|x86.ActiveCfg = Release|Any CPU
 		{AAAE007A-011A-4C3F-9F82-93D0B8D6A102}.Release|x86.Build.0 = Release|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Debug|x64.Build.0 = Debug|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Debug|x86.Build.0 = Debug|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Release|x64.ActiveCfg = Release|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Release|x64.Build.0 = Release|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Release|x86.ActiveCfg = Release|Any CPU
-		{3E4D573F-ED56-4BD4-85D8-8D1C837D907D}.Release|x86.Build.0 = Release|Any CPU
+
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

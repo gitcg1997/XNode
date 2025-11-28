@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using XLib.Node;
 using XNode.SubSystem.NodeEditSystem.Control.PropertyBar;
+using WpfUserControl = System.Windows.Controls.UserControl;
 
 namespace XNode.SubSystem.NodeEditSystem.Control
 {

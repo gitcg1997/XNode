@@ -1,6 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using WpfPoint = System.Windows.Point;
+using WpfColor = System.Windows.Media.Color;
 using XLib.Node;
 using XLib.WPF.UI;
 using XLib.WPFControl;
@@ -24,15 +26,15 @@ namespace XNode.SubSystem.NodeEditSystem.Control
         #region 属性
 
         /// <summary>节点颜色</summary>
-        public Color NodeColor
+        public WpfColor NodeColor
         {
             get => _nodeColor;
             set
             {
                 _nodeColor = value;
-                Color_Start.Color = Color.FromArgb(255, _nodeColor.R, _nodeColor.G, _nodeColor.B);
-                Color_End.Color = Color.FromArgb(0, _nodeColor.R, _nodeColor.G, _nodeColor.B);
-                NodeFillColor.Background = new SolidColorBrush(Color.FromArgb(48, _nodeColor.R, _nodeColor.G, _nodeColor.B));
+                Color_Start.Color = WpfColor.FromArgb(255, _nodeColor.R, _nodeColor.G, _nodeColor.B);
+                Color_End.Color = WpfColor.FromArgb(0, _nodeColor.R, _nodeColor.G, _nodeColor.B);
+                NodeFillColor.Background = new SolidColorBrush(WpfColor.FromArgb(48, _nodeColor.R, _nodeColor.G, _nodeColor.B));
             }
         }
 
@@ -119,20 +121,20 @@ namespace XNode.SubSystem.NodeEditSystem.Control
         /// <summary>
         /// 获取悬停引脚的偏移
         /// </summary>
-        public Point GetHoveredPinOffset()
+        public WpfPoint GetHoveredPinOffset()
         {
             foreach (var groupView in _pinGroupViewList)
             {
                 if (groupView.HoveredPin != null)
                     return groupView.GetHoveredPinOffset();
             }
-            return new Point();
+            return new WpfPoint();
         }
 
         /// <summary>
         /// 获取引脚相对于节点的坐标
         /// </summary>
-        public Point GetPinOffset(PinPath path) => _pinGroupViewList[path.GroupIndex].GetPinOffset(this, path.PinIndex);
+        public WpfPoint GetPinOffset(PinPath path) => _pinGroupViewList[path.GroupIndex].GetPinOffset(this, path.PinIndex);
 
         /// <summary>
         /// 更新全部引脚图标
@@ -307,6 +309,18 @@ namespace XNode.SubSystem.NodeEditSystem.Control
                         Margin = new Thickness(0, _pinItemInterval, 0, 0),
                         Instance = (ControlPinGroup)pinGroup,
                     };
+                case PinGroupType.ImagePath:
+                    return new ImagePathPinGroupView
+                    {
+                        Instance = (ImagePathPinGroup)pinGroup,
+                        Margin = new Thickness(0, _pinItemInterval, 0, 0),
+                    };
+                case PinGroupType.ComboBox:
+                    return new ComboBoxPinGroupView
+                    {
+                        Instance = (ComboBoxPinGroup)pinGroup,
+                        Margin = new Thickness(0, _pinItemInterval, 0, 0),
+                    };
             }
             return null;
         }
@@ -322,7 +336,7 @@ namespace XNode.SubSystem.NodeEditSystem.Control
         /// <summary>引脚信息列表</summary>
         private readonly List<PinConnectInfo> _connectInfoList = new List<PinConnectInfo>();
 
-        private Color _nodeColor = Colors.White;
+        private WpfColor _nodeColor = Colors.White;
 
         /// <summary>进度条控件</summary>
         private ProgressBar? _progressBar = null;

@@ -1,0 +1,28 @@
+<Window x:Class="XNode.Windows.ImageEditor.BlinkOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="BlinkOverlay"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowState="Normal"
+        IsHitTestVisible="False">
+    
+    <Grid>
+        <Rectangle Name="BlinkRectangle"
+                   Stroke="Red"
+                   StrokeThickness="4"
+                   Fill="Transparent"
+                   Visibility="Collapsed">
+            <Rectangle.Effect>
+                <DropShadowEffect Color="Red"
+                                Direction="0"
+                                ShadowDepth="0"
+                                BlurRadius="8"
+                                Opacity="0.8"/>
+            </Rectangle.Effect>
+        </Rectangle>
+    </Grid>
+</Window>

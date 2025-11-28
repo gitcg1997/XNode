@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using WpfPoint = System.Windows.Point;
 using XLib.Animate;
 using XLib.Base.UIComponent;
 using XLib.Math.Easing;
@@ -18,7 +19,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         #region 属性
 
         /// <summary>世界中心</summary>
-        public Point WorldCenter => _gridLayer.GridCenter;
+        public WpfPoint WorldCenter => _gridLayer.GridCenter;
 
         /// <summary>悬停框</summary>
         public TargetBox? HoverBox
@@ -59,15 +60,15 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// <summary>
         /// 屏幕坐标转世界坐标
         /// </summary>
-        public Point ScreenToWorld(Point screenPoint)
+        public WpfPoint ScreenToWorld(WpfPoint screenPoint)
         {
             // 转世界坐标
-            Point worldPoint = new Point(screenPoint.X - _gridLayer.GridCenter.X, screenPoint.Y - _gridLayer.GridCenter.Y);
+            WpfPoint worldPoint = new WpfPoint(screenPoint.X - _gridLayer.GridCenter.X, screenPoint.Y - _gridLayer.GridCenter.Y);
             // 对齐至网格
             double x = Math.Round(worldPoint.X / _gridLayer.CellWidth) * _gridLayer.CellWidth;
             double y = Math.Round(worldPoint.Y / _gridLayer.CellHeight) * _gridLayer.CellHeight;
             // 返回坐标
-            return new Point(x, y);
+            return new WpfPoint(x, y);
         }
 
         /// <summary>
@@ -83,7 +84,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// <summary>
         /// 更新选框
         /// </summary>
-        public void UpdateSelectBox(Point start, Point end)
+        public void UpdateSelectBox(WpfPoint start, WpfPoint end)
         {
             _selectBoxLayer.Start = start;
             _selectBoxLayer.End = end;
@@ -110,7 +111,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             {
                 TargetBox box = new TargetBox
                 {
-                    ScreenPoint = new Point(Canvas.GetLeft(card) + 9, Canvas.GetTop(card) - 2),
+                    ScreenPoint = new WpfPoint(Canvas.GetLeft(card) + 9, Canvas.GetTop(card) - 2),
                     Width = card.ActualWidth - 18,
                     Height = card.ActualHeight + 4
                 };
@@ -122,7 +123,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// <summary>
         /// 开始绘制临时连接线
         /// </summary>
-        public void BeginDrawTempConnectLine(Point start)
+        public void BeginDrawTempConnectLine(WpfPoint start)
         {
             _tempLineLayer.Line = new ConnectLine
             {
@@ -135,20 +136,20 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// <summary>
         /// 更新临时连接线起点
         /// </summary>
-        public void UpdateTempLineStart(Point start)
+        public void UpdateTempLineStart(WpfPoint start)
         {
             if (_tempLineLayer.Line != null)
-                _tempLineLayer.Line.Start = new Point(start.X, start.Y);
+                _tempLineLayer.Line.Start = new WpfPoint(start.X, start.Y);
             _tempLineLayer.Update();
         }
 
         /// <summary>
         /// 设置临时连接线终点
         /// </summary>
-        public void UpdateTempLineEnd(Point end)
+        public void UpdateTempLineEnd(WpfPoint end)
         {
             if (_tempLineLayer.Line != null)
-                _tempLineLayer.Line.End = new Point(end.X, end.Y);
+                _tempLineLayer.Line.End = new WpfPoint(end.X, end.Y);
             _tempLineLayer.Update();
         }
 
@@ -203,7 +204,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// <summary>
         /// 更新悬停连接线
         /// </summary>
-        public void UpdateHoveredConnectLine(Point point)
+        public void UpdateHoveredConnectLine(WpfPoint point)
         {
             _hoveredLine = _connectLineLayer.GetHitedVisualElement(point);
             if (_hoveredLine is VisualConnectLine line)
@@ -218,7 +219,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// <summary>
         /// 拖动视口
         /// </summary>
-        public void DragViewport(Point offset)
+        public void DragViewport(WpfPoint offset)
         {
             // 移动网格
             _gridLayer.MoveLayer(offset);
@@ -348,24 +349,24 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         /// <summary>
         /// 获取引脚相对于图层的坐标
         /// </summary>
-        private Point GetPinPoint(PinBase pin)
+        private WpfPoint GetPinPoint(PinBase pin)
         {
             // 获取引脚路径
             PinPath path = pin.GetPinPath();
             // 获取节点卡片
             NodeView card = GetComponent<CardComponent>().GetNodeCard(path.NodeID);
             // 获取引脚坐标（相对于节点）
-            Point pinOffset = card.GetPinOffset(path);
+            WpfPoint pinOffset = card.GetPinOffset(path);
             // 获取节点坐标
-            Point nodePoint = new Point(Canvas.GetLeft(card), Canvas.GetTop(card));
+            WpfPoint nodePoint = new WpfPoint(Canvas.GetLeft(card), Canvas.GetTop(card));
             // 返回偏移
-            return new Point(nodePoint.X + pinOffset.X, nodePoint.Y + pinOffset.Y);
+            return new WpfPoint(nodePoint.X + pinOffset.X, nodePoint.Y + pinOffset.Y);
         }
 
         /// <summary>
         /// 获取引脚颜色
         /// </summary>
-        private Color GetPinColor(DataPin pin)
+        private System.Windows.Media.Color GetPinColor(DataPin pin)
         {
             return ((DataPinGroup)pin.OwnerGroup).Type switch
             {

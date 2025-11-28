@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using WpfUserControl = System.Windows.Controls.UserControl;
 using XNode.Command;
 using XLib.Node;
 using XNode.SubSystem.NodeEditSystem.Define;
@@ -7,7 +8,7 @@ using XNode.SubSystem.ProjectSystem;
 
 namespace XNode
 {
-    public partial class CoreEditer : UserControl
+    public partial class CoreEditer : WpfUserControl
     {
         #region 属性
 

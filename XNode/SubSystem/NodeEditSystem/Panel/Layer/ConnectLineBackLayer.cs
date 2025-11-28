@@ -1,5 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using WpfPoint = System.Windows.Point;
+using WpfPen = System.Windows.Media.Pen;
 using XLib.WPF.Drawing;
 
 namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
@@ -9,9 +11,9 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
     /// </summary>
     public class ConnectLineBackLayer : SingleBoard
     {
-        public Point Start { get; set; }
+        public WpfPoint Start { get; set; }
 
-        public Point End { get; set; }
+        public WpfPoint End { get; set; }
 
         public override void Init() => _pen.Freeze();
 
@@ -33,12 +35,12 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
             geometry.Figures.Add(figure);
 
             // 计算贝塞尔曲线的控制点与终点
-            Point p1 = new Point(_left + controlLineLength, _top);
-            Point p2 = new Point(_right - controlLineLength, _bottom);
-            Point endPoint = new Point(_right, _bottom);
+            WpfPoint p1 = new WpfPoint(_left + controlLineLength, _top);
+            WpfPoint p2 = new WpfPoint(_right - controlLineLength, _bottom);
+            WpfPoint endPoint = new WpfPoint(_right, _bottom);
 
             // 设置起点并添加贝塞尔曲线
-            figure.StartPoint = new Point(_left, _top);
+            figure.StartPoint = new WpfPoint(_left, _top);
             figure.Segments.Add(new BezierSegment(p1, p2, endPoint, true));
 
             _dc.DrawGeometry(null, _pen, geometry);
@@ -52,6 +54,6 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
         /// <summary>控制线最短长度</summary>
         private readonly int _minLength = 40;
 
-        private readonly Pen _pen = new Pen(new SolidColorBrush(Color.FromArgb(64, 255, 255, 255)), 5);
+        private readonly WpfPen _pen = new WpfPen(new SolidColorBrush(Color.FromArgb(64, 255, 255, 255)), 5);
     }
 }

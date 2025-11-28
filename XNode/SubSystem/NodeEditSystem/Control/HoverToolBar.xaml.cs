@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using WpfUserControl = System.Windows.Controls.UserControl;
 
 namespace XNode.SubSystem.NodeEditSystem.Control
 {

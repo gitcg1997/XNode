@@ -1,10 +1,11 @@
 using System.Windows;
+using WpfApplication = System.Windows.Application;
 using XNode.AppTool;
 using XNode.SubSystem.WindowSystem;
 
 namespace XNode
 {
-    public partial class App : Application
+    public partial class App : WpfApplication
     {
         #region 构造方法
 

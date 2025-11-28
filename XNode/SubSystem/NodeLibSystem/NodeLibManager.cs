@@ -5,11 +5,9 @@ using XLib.Base.Ex;
 using XLib.Base.VirtualDisk;
 using XLib.Node;
 using XNode.SubSystem.NodeLibSystem.Define.Basics;
-using XNode.SubSystem.NodeLibSystem.Define.Data;
-using XNode.SubSystem.NodeLibSystem.Define.Drivers;
-using XNode.SubSystem.NodeLibSystem.Define.Events;
-using XNode.SubSystem.NodeLibSystem.Define.Flows;
-using XNode.SubSystem.NodeLibSystem.Define.Functions;
+using XNode.SubSystem.NodeLibSystem.Define.Actions;
+using XNode.SubSystem.NodeLibSystem.Define.Controls;
+using XNode.SubSystem.NodeLibSystem.Define.ImageRecognition;
 using XNode.SubSystem.OptionSystem;
 
 namespace XNode.SubSystem.NodeLibSystem
@@ -60,33 +58,21 @@ namespace XNode.SubSystem.NodeLibSystem
                 nameof(StartNode) => new StartNode(),
                 nameof(EndNode) => new EndNode(),
 
-                // 数据节点
-                nameof(Data_Int) => new Data_Int(),
-                nameof(Data_Double) => new Data_Double(),
-                nameof(Data_String) => new Data_String(),
+                // 动作节点
+                nameof(MouseClickNode) => new MouseClickNode(),
+                nameof(DelayNode) => new DelayNode(),
 
-                // 驱动节点
-                nameof(FrameDriver) => new FrameDriver(),
-                nameof(TimerDriver) => new TimerDriver(),
+                // 控制流节点
+                nameof(ConditionNode) => new ConditionNode(),
+                nameof(LoopNode) => new LoopNode(),
+                nameof(SmartLoopNode) => new SmartLoopNode(),
 
-                // 事件节点
-                nameof(Event_Keyboard) => new Event_Keyboard(),
-
-                // 流控制节点
-                nameof(Flow_If) => new Flow_If(),
-                nameof(Flow_LoopByCount) => new Flow_LoopByCount(),
-                nameof(Flow_While) => new Flow_While(),
-                nameof(Flow_Switch) => new Flow_Switch(),
-
-                // 函数节点
-                nameof(Func_Compare) => new Func_Compare(),
-                nameof(Func_NumberToRatio) => new Func_NumberToRatio(),
-                nameof(Func_RatioToInt) => new Func_RatioToInt(),
-                nameof(Func_SendNetMessage) => new Func_SendNetMessage(),
-                nameof(Func_Delay) => new Func_Delay(),
-                nameof(Func_CreateThread) => new Func_CreateThread(),
-                nameof(Func_Sleep) => new Func_Sleep(),
-                nameof(Func_Log) => new Func_Log(),
+                // 图像识别节点
+                nameof(ScreenFindImageNode) => new ScreenFindImageNode(),
+                nameof(RegionFindImageNode) => new RegionFindImageNode(),
+                nameof(RegionSelectorNode) => new RegionSelectorNode(),
+                nameof(WaitForImageNode) => new WaitForImageNode(),
+                nameof(IntegratedRegionFindNode) => new IntegratedRegionFindNode(),
 
                 _ => null,
             };
@@ -109,46 +95,32 @@ namespace XNode.SubSystem.NodeLibSystem
         {
             // 创建根文件夹
             Folder 内置节点 = _nodeLibRoot.CreateFolder("内置节点".PackToList());
+
             // 创建一级文件夹
             Folder 基础节点 = _nodeLibRoot.CreateFolder(内置节点, "基础节点".PackToList());
-            Folder 驱动节点 = _nodeLibRoot.CreateFolder(内置节点, "驱动节点".PackToList());
-            Folder 事件节点 = _nodeLibRoot.CreateFolder(内置节点, "事件节点".PackToList());
-            Folder 函数节点 = _nodeLibRoot.CreateFolder(内置节点, "函数节点".PackToList());
-            Folder 流控制节点 = _nodeLibRoot.CreateFolder(内置节点, "流控制节点".PackToList());
-            Folder 数据节点 = _nodeLibRoot.CreateFolder(内置节点, "数据节点".PackToList());
-            // 创建二级文件夹
-            Folder 运算函数 = _nodeLibRoot.CreateFolder(函数节点.Path.AppendElement("运算函数"));
-            Folder 转换器 = _nodeLibRoot.CreateFolder(函数节点.Path.AppendElement("转换器"));
-            Folder 执行控制 = _nodeLibRoot.CreateFolder(函数节点.Path.AppendElement("执行控制"));
-            // 创建文件
+            Folder 动作节点 = _nodeLibRoot.CreateFolder(内置节点, "动作节点".PackToList());
+            Folder 控制流节点 = _nodeLibRoot.CreateFolder(内置节点, "控制流节点".PackToList());
+            Folder 图像识别节点 = _nodeLibRoot.CreateFolder(内置节点, "图像识别节点".PackToList());
+
             // 基础节点
             _nodeLibRoot.CreateFile(基础节点, "开始", "nt", new NodeType<StartNode>());
             _nodeLibRoot.CreateFile(基础节点, "结束", "nt", new NodeType<EndNode>());
 
-            // 数据节点
-            _nodeLibRoot.CreateFile(数据节点, "整数", "nt", new NodeType<Data_Int>());
-            _nodeLibRoot.CreateFile(数据节点, "小数", "nt", new NodeType<Data_Double>());
-            _nodeLibRoot.CreateFile(数据节点, "字符串", "nt", new NodeType<Data_String>());
+            // 动作节点
+            _nodeLibRoot.CreateFile(动作节点, "鼠标点击", "nt", new NodeType<MouseClickNode>());
+            _nodeLibRoot.CreateFile(动作节点, "延迟", "nt", new NodeType<DelayNode>());
 
-            _nodeLibRoot.CreateFile(驱动节点, "帧驱动器", "nt", new NodeType<FrameDriver>());
-            _nodeLibRoot.CreateFile(驱动节点, "定时驱动器", "nt", new NodeType<TimerDriver>());
+            // 控制流节点
+            _nodeLibRoot.CreateFile(控制流节点, "条件判断", "nt", new NodeType<ConditionNode>());
+            _nodeLibRoot.CreateFile(控制流节点, "循环", "nt", new NodeType<LoopNode>());
+            _nodeLibRoot.CreateFile(控制流节点, "智能循环", "nt", new NodeType<SmartLoopNode>());
 
-            _nodeLibRoot.CreateFile(事件节点, "按键", "nt", new NodeType<Event_Keyboard>());
-
-            _nodeLibRoot.CreateFile(运算函数, "关系运算", "nt", new NodeType<Func_Compare>());
-            _nodeLibRoot.CreateFile(转换器, "比例转整数", "nt", new NodeType<Func_RatioToInt>());
-            _nodeLibRoot.CreateFile(转换器, "数值转比例", "nt", new NodeType<Func_NumberToRatio>());
-            _nodeLibRoot.CreateFile(函数节点, "发送网络消息", "nt", new NodeType<Func_SendNetMessage>());
-            _nodeLibRoot.CreateFile(函数节点, "日志", "nt", new NodeType<Func_Log>());
-
-            _nodeLibRoot.CreateFile(执行控制, "多线程执行", "nt", new NodeType<Func_CreateThread>());
-            _nodeLibRoot.CreateFile(执行控制, "延迟执行", "nt", new NodeType<Func_Delay>());
-            _nodeLibRoot.CreateFile(执行控制, "暂停执行", "nt", new NodeType<Func_Sleep>());
-
-            _nodeLibRoot.CreateFile(流控制节点, "判断", "nt", new NodeType<Flow_If>());
-            _nodeLibRoot.CreateFile(流控制节点, "计数循环", "nt", new NodeType<Flow_LoopByCount>());
-            _nodeLibRoot.CreateFile(流控制节点, "条件循环", "nt", new NodeType<Flow_While>());
-            _nodeLibRoot.CreateFile(流控制节点, "选择执行", "nt", new NodeType<Flow_Switch>());
+            // 图像识别节点
+            _nodeLibRoot.CreateFile(图像识别节点, "屏幕找图", "nt", new NodeType<ScreenFindImageNode>());
+            _nodeLibRoot.CreateFile(图像识别节点, "区域找图", "nt", new NodeType<RegionFindImageNode>());
+            _nodeLibRoot.CreateFile(图像识别节点, "设置区域", "nt", new NodeType<RegionSelectorNode>());
+            _nodeLibRoot.CreateFile(图像识别节点, "等待图像", "nt", new NodeType<WaitForImageNode>());
+            _nodeLibRoot.CreateFile(图像识别节点, "区域查找与选择", "nt", new NodeType<IntegratedRegionFindNode>());
         }
 
         /// <summary>

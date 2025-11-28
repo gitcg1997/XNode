@@ -1,0 +1,789 @@
+<Window x:Class="XNode.Windows.ImageLibrary.Views.ImageLibraryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:vm="clr-namespace:XNode.Windows.ImageLibrary.ViewModels"
+        xmlns:converters="clr-namespace:XNode.Windows.ImageLibrary.Converters"
+        Title="图片库管理"
+        Height="750"
+        Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="#FAFAFA">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/XNode;component/Windows/ImageEditor/Styles/AppStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 值转换器 -->
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+            <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter"/>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:BoolToHeartIconConverter x:Key="BoolToHeartIconConverter"/>
+            <converters:BoolToFavoriteTextConverter x:Key="BoolToFavoriteTextConverter"/>
+            <converters:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
+            <converters:StringToColorConverter x:Key="StringToColorConverter"/>
+            <converters:StringToIconKindConverter x:Key="StringToIconKindConverter"/>
+            <converters:ViewModeToGridConverter x:Key="ViewModeToGridConverter"/>
+            <converters:ViewModeToListConverter x:Key="ViewModeToListConverter"/>
+
+            <!-- 图标样式 -->
+            <Style x:Key="Icon16Style" TargetType="{x:Type iconPacks:PackIconMaterial}">
+                <Setter Property="Width" Value="16"/>
+                <Setter Property="Height" Value="16"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="Margin" Value="0,0,6,0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <Style x:Key="Icon20Style" TargetType="{x:Type iconPacks:PackIconMaterial}">
+                <Setter Property="Width" Value="20"/>
+                <Setter Property="Height" Value="20"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部工具栏 -->
+        <Border Grid.Row="0"
+                Background="White"
+                BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="{StaticResource SpacingMD}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 标题 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Border Background="{StaticResource PrimaryGradientBrush}"
+                            CornerRadius="{StaticResource RadiusMD}"
+                            Width="36" Height="36"
+                            Margin="0,0,12,0">
+                        <iconPacks:PackIconMaterial Kind="ImageMultiple"
+                                                  Width="20" Height="20"
+                                                  Foreground="White"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Center"/>
+                    </Border>
+                    <StackPanel>
+                        <TextBlock Text="图片库管理" Style="{StaticResource TitleTextStyle}"/>
+                        <TextBlock Text="{Binding StatusText}" Style="{StaticResource CaptionTextStyle}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 搜索框 -->
+                <Border Grid.Column="1"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource DividerBrush}"
+                        BorderThickness="{StaticResource BorderThin}"
+                        CornerRadius="{StaticResource RadiusMD}"
+                        MaxWidth="400"
+                        Margin="{StaticResource SpacingLG}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <iconPacks:PackIconMaterial Grid.Column="0"
+                                                  Kind="Magnify"
+                                                  Style="{StaticResource Icon20Style}"
+                                                  Margin="12,0,8,0"/>
+
+                        <TextBox x:Name="SearchTextBox"
+                                 Grid.Column="1"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="40"
+                                 Padding="0"
+                                 FontSize="14"
+                                 VerticalContentAlignment="Center"
+                                 Background="Transparent"
+                                 BorderThickness="0">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+
+                        <Button Grid.Column="2"
+                                Command="{Binding ClearSearchCommand}"
+                                Style="{StaticResource IconButtonStyle}"
+                                Margin="8,0"
+                                Visibility="{Binding SearchText, Converter={StaticResource StringToVisibilityConverter}}">
+                            <iconPacks:PackIconMaterial Kind="Close" Width="16" Height="16"/>
+                        </Button>
+
+                        <!-- 占位符 -->
+                        <TextBlock Grid.Column="1"
+                                   Text="搜索图片..."
+                                   Foreground="{StaticResource TextDisabledBrush}"
+                                   FontSize="14"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SearchText}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+
+                <!-- 右侧操作按钮 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Command="{Binding ToggleFavoritesOnlyCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Height="36"
+                            Padding="12,6"
+                            ToolTip="只显示收藏"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="{Binding ShowFavoritesOnly, Converter={StaticResource BoolToHeartIconConverter}}"
+                                                      Style="{StaticResource Icon16Style}"/>
+                            <TextBlock Text="收藏" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ImportImagesCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Height="36"
+                            Padding="12,6"
+                            ToolTip="导入图片"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Plus" Style="{StaticResource Icon16Style}"/>
+                            <TextBlock Text="导入" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding RefreshCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Height="36"
+                            Width="36"
+                            Padding="0"
+                            ToolTip="刷新">
+                        <iconPacks:PackIconMaterial Kind="Refresh" Style="{StaticResource Icon20Style}" Margin="0"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 主内容区 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧分类列表 -->
+            <Border Grid.Column="0"
+                    Background="White"
+                    BorderBrush="{StaticResource DividerBrush}"
+                    BorderThickness="0,0,1,0"
+                    Padding="{StaticResource SpacingMD}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="分类"
+                               Style="{StaticResource SubtitleTextStyle}"
+                               Margin="0,0,0,12"/>
+
+                    <ListBox ItemsSource="{Binding Categories}"
+                             SelectedItem="{Binding SelectedCategory}"
+                             Background="Transparent"
+                             BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="Transparent"
+                                        Padding="{StaticResource SpacingSM}"
+                                        CornerRadius="{StaticResource RadiusSM}"
+                                        Margin="0,2">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Background" Value="#E3F2FD"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0"
+                                                Width="32" Height="32"
+                                                CornerRadius="{StaticResource RadiusSM}"
+                                                Margin="0,0,12,0">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{Binding Color, Converter={StaticResource StringToColorConverter}}"
+                                                               Opacity="0.2"/>
+                                            </Border.Background>
+                                            <iconPacks:PackIconMaterial Kind="{Binding Icon, Converter={StaticResource StringToIconKindConverter}}"
+                                                                      Width="18" Height="18"
+                                                                      HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center">
+                                                <iconPacks:PackIconMaterial.Foreground>
+                                                    <SolidColorBrush Color="{Binding Color, Converter={StaticResource StringToColorConverter}}"/>
+                                                </iconPacks:PackIconMaterial.Foreground>
+                                            </iconPacks:PackIconMaterial>
+                                        </Border>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Name}"
+                                                   Style="{StaticResource BodyTextStyle}"
+                                                   FontWeight="{Binding IsSelected, Converter={StaticResource BoolToFontWeightConverter}}"
+                                                   VerticalAlignment="Center"/>
+
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding ImageCount}"
+                                                   Style="{StaticResource CaptionTextStyle}"
+                                                   VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- 中间图片列表 -->
+            <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}">
+                <DockPanel>
+                    <!-- 工具栏 -->
+                    <Border DockPanel.Dock="Top"
+                            Background="White"
+                            BorderBrush="{StaticResource DividerBrush}"
+                            BorderThickness="0,0,0,1"
+                            Padding="{StaticResource SpacingMD}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 批量操作 -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal"
+                                       Visibility="{Binding SelectedCount, Converter={StaticResource IntToVisibilityConverter}}">
+                                <TextBlock Text="{Binding SelectedCount, StringFormat='已选择 {0} 张'}"
+                                          Style="{StaticResource BodyTextStyle}"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,8,0"/>
+
+                                <Button Command="{Binding DeleteSelectedImagesCommand}"
+                                        Style="{StaticResource DangerButtonStyle}"
+                                        Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconMaterial Kind="Delete" Style="{StaticResource Icon16Style}"/>
+                                        <TextBlock Text="删除"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Command="{Binding ClearSelectionCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}">
+                                    <TextBlock Text="取消选择"/>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- 视图控制 -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <ComboBox Width="120"
+                                          SelectedValue="{Binding CurrentSortMode}"
+                                          Style="{StaticResource ModernComboBoxStyle}"
+                                          ToolTip="排序"
+                                          Margin="0,0,8,0">
+                                    <ComboBoxItem Content="最新添加" Tag="DateDesc" Style="{StaticResource ModernComboBoxItemStyle}"/>
+                                    <ComboBoxItem Content="最早添加" Tag="DateAsc" Style="{StaticResource ModernComboBoxItemStyle}"/>
+                                    <ComboBoxItem Content="名称 A-Z" Tag="NameAsc" Style="{StaticResource ModernComboBoxItemStyle}"/>
+                                    <ComboBoxItem Content="名称 Z-A" Tag="NameDesc" Style="{StaticResource ModernComboBoxItemStyle}"/>
+                                    <ComboBoxItem Content="大小降序" Tag="SizeDesc" Style="{StaticResource ModernComboBoxItemStyle}"/>
+                                    <ComboBoxItem Content="使用最多" Tag="UsageDesc" Style="{StaticResource ModernComboBoxItemStyle}"/>
+                                </ComboBox>
+
+                                <ToggleButton IsChecked="{Binding CurrentViewMode, Converter={StaticResource ViewModeToGridConverter}}"
+                                             Style="{StaticResource IconToggleButtonStyle}"
+                                             ToolTip="网格视图"
+                                             Margin="0,0,8,0">
+                                    <iconPacks:PackIconMaterial Kind="ViewGrid" Width="18" Height="18"/>
+                                </ToggleButton>
+
+                                <ToggleButton IsChecked="{Binding CurrentViewMode, Converter={StaticResource ViewModeToListConverter}}"
+                                             Style="{StaticResource IconToggleButtonStyle}"
+                                             ToolTip="列表视图">
+                                    <iconPacks:PackIconMaterial Kind="ViewList" Width="18" Height="18"/>
+                                </ToggleButton>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- 图片显示区域 - 支持网格/列表切换 -->
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ContentControl Content="{Binding Images}">
+                            <ContentControl.Style>
+                                <Style TargetType="ContentControl">
+                                    <!-- 默认网格视图 -->
+                                    <Setter Property="ContentTemplate">
+                                        <Setter.Value>
+                                            <DataTemplate>
+                                                <ItemsControl ItemsSource="{Binding}" Padding="{StaticResource SpacingMD}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Width="180" Height="220"
+                                                                    Margin="8"
+                                                                    Background="White"
+                                                                    BorderBrush="{StaticResource DividerBrush}"
+                                                                    BorderThickness="{StaticResource BorderThin}"
+                                                                    CornerRadius="{StaticResource RadiusMD}"
+                                                                    Padding="8"
+                                                                    Cursor="Hand">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                                                <Setter Property="BorderThickness" Value="2"/>
+                                                                                <Setter Property="Background" Value="#E3F2FD"/>
+                                                                            </DataTrigger>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter Property="Background" Value="#F5F5F5"/>
+                                                                            </Trigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+
+                                                                <Border.InputBindings>
+                                                                    <MouseBinding MouseAction="LeftClick"
+                                                                                Command="{Binding DataContext.SelectImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                CommandParameter="{Binding}"/>
+                                                                </Border.InputBindings>
+
+                                                                <Grid>
+                                                                    <Grid.RowDefinitions>
+                                                                        <RowDefinition Height="140"/>
+                                                                        <RowDefinition Height="*"/>
+                                                                    </Grid.RowDefinitions>
+
+                                                                    <!-- 图片预览 -->
+                                                                    <Border Grid.Row="0"
+                                                                            Background="#F5F5F5"
+                                                                            CornerRadius="{StaticResource RadiusSM}"
+                                                                            ClipToBounds="True">
+                                                                        <Image Source="{Binding Thumbnail}"
+                                                                               Stretch="Uniform"
+                                                                               Margin="4"/>
+                                                                    </Border>
+
+                                                                    <!-- 图片信息 -->
+                                                                    <StackPanel Grid.Row="1" Margin="0,8,0,0">
+                                                                        <TextBlock Text="{Binding Name}"
+                                                                                   Style="{StaticResource BodyTextStyle}"
+                                                                                   FontWeight="SemiBold"
+                                                                                   TextTrimming="CharacterEllipsis"
+                                                                                   Margin="0,0,0,4"/>
+
+                                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                                            <iconPacks:PackIconMaterial Kind="Tag"
+                                                                                                      Width="12" Height="12"
+                                                                                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                                                                                      Margin="0,0,4,0"/>
+                                                                            <TextBlock Text="{Binding CategoryName}"
+                                                                                       Style="{StaticResource CaptionTextStyle}"/>
+                                                                        </StackPanel>
+
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <TextBlock Text="{Binding FileSizeFormatted}"
+                                                                                       Style="{StaticResource CaptionTextStyle}"
+                                                                                       Margin="0,0,8,0"/>
+                                                                            <TextBlock Text="{Binding Resolution}"
+                                                                                       Style="{StaticResource CaptionTextStyle}"/>
+                                                                        </StackPanel>
+                                                                    </StackPanel>
+
+                                                                    <!-- 收藏标记 -->
+                                                                    <Border Grid.Row="0"
+                                                                            Width="28" Height="28"
+                                                                            Background="{StaticResource ErrorBrush}"
+                                                                            CornerRadius="14"
+                                                                            HorizontalAlignment="Right"
+                                                                            VerticalAlignment="Top"
+                                                                            Margin="0,-4,-4,0"
+                                                                            Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                        <iconPacks:PackIconMaterial Kind="Heart"
+                                                                                                  Width="14" Height="14"
+                                                                                                  Foreground="White"
+                                                                                                  HorizontalAlignment="Center"
+                                                                                                  VerticalAlignment="Center"/>
+                                                                    </Border>
+
+                                                                    <!-- 选中标记 -->
+                                                                    <Border Grid.Row="0"
+                                                                            Width="28" Height="28"
+                                                                            Background="{StaticResource PrimaryBrush}"
+                                                                            CornerRadius="14"
+                                                                            HorizontalAlignment="Right"
+                                                                            VerticalAlignment="Top"
+                                                                            Margin="0,-4,-4,0"
+                                                                            Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                        <iconPacks:PackIconMaterial Kind="Check"
+                                                                                                  Width="16" Height="16"
+                                                                                                  Foreground="White"
+                                                                                                  HorizontalAlignment="Center"
+                                                                                                  VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DataTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <!-- 列表视图触发器 -->
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DataContext.CurrentViewMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="List">
+                                            <Setter Property="ContentTemplate">
+                                                <Setter.Value>
+                                                    <DataTemplate>
+                                                        <ItemsControl ItemsSource="{Binding}" Padding="{StaticResource SpacingMD}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <StackPanel/>
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Border Background="White"
+                                                                            BorderBrush="{StaticResource DividerBrush}"
+                                                                            BorderThickness="{StaticResource BorderThin}"
+                                                                            CornerRadius="{StaticResource RadiusMD}"
+                                                                            Margin="0,0,0,8"
+                                                                            Padding="{StaticResource SpacingMD}"
+                                                                            Cursor="Hand">
+                                                                        <Border.Style>
+                                                                            <Style TargetType="Border">
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                                                                        <Setter Property="BorderThickness" Value="2"/>
+                                                                                        <Setter Property="Background" Value="#E3F2FD"/>
+                                                                                    </DataTrigger>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter Property="Background" Value="#F5F5F5"/>
+                                                                                    </Trigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Border.Style>
+
+                                                                        <Border.InputBindings>
+                                                                            <MouseBinding MouseAction="LeftClick"
+                                                                                        Command="{Binding DataContext.SelectImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                        CommandParameter="{Binding}"/>
+                                                                        </Border.InputBindings>
+
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="100"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+
+                                                                            <!-- 缩略图 -->
+                                                                            <Border Grid.Column="0"
+                                                                                    Background="#F5F5F5"
+                                                                                    CornerRadius="{StaticResource RadiusSM}"
+                                                                                    Width="100" Height="100"
+                                                                                    ClipToBounds="True">
+                                                                                <Image Source="{Binding Thumbnail}"
+                                                                                       Stretch="Uniform"/>
+                                                                            </Border>
+
+                                                                            <!-- 信息区域 -->
+                                                                            <StackPanel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center">
+                                                                                <TextBlock Text="{Binding Name}"
+                                                                                           Style="{StaticResource SubtitleTextStyle}"
+                                                                                           FontWeight="SemiBold"
+                                                                                           Margin="0,0,0,8"/>
+
+                                                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                                                    <iconPacks:PackIconMaterial Kind="Tag"
+                                                                                                              Width="14" Height="14"
+                                                                                                              Foreground="{StaticResource TextSecondaryBrush}"
+                                                                                                              Margin="0,0,6,0"
+                                                                                                              VerticalAlignment="Center"/>
+                                                                                    <TextBlock Text="{Binding CategoryName}"
+                                                                                               Style="{StaticResource BodyTextStyle}"
+                                                                                               VerticalAlignment="Center"/>
+                                                                                </StackPanel>
+
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="Auto"/>
+                                                                                        <ColumnDefinition Width="Auto"/>
+                                                                                        <ColumnDefinition Width="Auto"/>
+                                                                                    </Grid.ColumnDefinitions>
+
+                                                                                    <TextBlock Grid.Column="0"
+                                                                                               Text="{Binding Resolution}"
+                                                                                               Style="{StaticResource CaptionTextStyle}"
+                                                                                               Margin="0,0,16,0"/>
+
+                                                                                    <TextBlock Grid.Column="1"
+                                                                                               Text="{Binding FileSizeFormatted}"
+                                                                                               Style="{StaticResource CaptionTextStyle}"
+                                                                                               Margin="0,0,16,0"/>
+
+                                                                                    <TextBlock Grid.Column="2"
+                                                                                               Text="{Binding RelativeTime}"
+                                                                                               Style="{StaticResource CaptionTextStyle}"/>
+                                                                                </Grid>
+                                                                            </StackPanel>
+
+                                                                            <!-- 操作按钮区域 -->
+                                                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                                <!-- 收藏图标 -->
+                                                                                <Border Width="32" Height="32"
+                                                                                        Background="{StaticResource ErrorBrush}"
+                                                                                        CornerRadius="16"
+                                                                                        Margin="0,0,8,0"
+                                                                                        Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                                    <iconPacks:PackIconMaterial Kind="Heart"
+                                                                                                              Width="16" Height="16"
+                                                                                                              Foreground="White"
+                                                                                                              HorizontalAlignment="Center"
+                                                                                                              VerticalAlignment="Center"/>
+                                                                                </Border>
+
+                                                                                <!-- 选中图标 -->
+                                                                                <Border Width="32" Height="32"
+                                                                                        Background="{StaticResource PrimaryBrush}"
+                                                                                        CornerRadius="16"
+                                                                                        Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                                                    <iconPacks:PackIconMaterial Kind="Check"
+                                                                                                              Width="18" Height="18"
+                                                                                                              Foreground="White"
+                                                                                                              HorizontalAlignment="Center"
+                                                                                                              VerticalAlignment="Center"/>
+                                                                                </Border>
+                                                                            </StackPanel>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </DataTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ContentControl.Style>
+                        </ContentControl>
+                    </ScrollViewer>
+
+                    <!-- 空状态 -->
+                    <StackPanel HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding TotalImages, Converter={StaticResource ZeroToVisibilityConverter}}">
+                        <iconPacks:PackIconMaterial Kind="ImageOff"
+                                                  Width="64" Height="64"
+                                                  Foreground="{StaticResource TextDisabledBrush}"
+                                                  Margin="0,0,0,16"/>
+                        <TextBlock Text="暂无图片"
+                                   Style="{StaticResource SubtitleTextStyle}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,8"/>
+                        <TextBlock Text="点击导入按钮添加图片"
+                                   Style="{StaticResource CaptionTextStyle}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- 加载中 -->
+                    <Border Background="#80FFFFFF"
+                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <ProgressBar IsIndeterminate="True"
+                                        Width="200"
+                                        Height="4"
+                                        Margin="0,0,0,16"/>
+                            <TextBlock Text="加载中..."
+                                      Style="{StaticResource BodyTextStyle}"
+                                      HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </DockPanel>
+            </Border>
+
+            <!-- 右侧详情面板 -->
+            <Border Grid.Column="2"
+                    Background="White"
+                    BorderBrush="{StaticResource DividerBrush}"
+                    BorderThickness="1,0,0,0"
+                    Padding="{StaticResource SpacingMD}"
+                    Visibility="{Binding CurrentImage, Converter={StaticResource NullToVisibilityConverter}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="图片详情"
+                                   Style="{StaticResource SubtitleTextStyle}"
+                                   Margin="0,0,0,16"/>
+
+                        <!-- 大图预览 -->
+                        <Border Background="#F5F5F5"
+                                CornerRadius="{StaticResource RadiusMD}"
+                                Height="200"
+                                Margin="0,0,0,16"
+                                ClipToBounds="True">
+                            <Image Source="{Binding CurrentImage.Thumbnail}"
+                                   Stretch="Uniform"/>
+                        </Border>
+
+                        <!-- 详细信息 -->
+                        <StackPanel Margin="0,16,0,0">
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="名称" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CurrentImage.Name}" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="分类" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CurrentImage.CategoryName}" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="分辨率" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CurrentImage.Resolution}" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="文件大小" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CurrentImage.FileSizeFormatted}" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="格式" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CurrentImage.Format}" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="使用次数" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CurrentImage.UsageCount}" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock Text="添加时间" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CurrentImage.RelativeTime}" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- 操作按钮 -->
+                        <StackPanel Margin="0,24,0,0">
+                            <Button Command="{Binding ToggleFavoriteCommand}"
+                                    CommandParameter="{Binding CurrentImage}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="{Binding CurrentImage.IsFavorite, Converter={StaticResource BoolToHeartIconConverter}}"
+                                                              Style="{StaticResource Icon16Style}"/>
+                                    <TextBlock Text="{Binding CurrentImage.IsFavorite, Converter={StaticResource BoolToFavoriteTextConverter}}"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Content="在资源管理器中显示"
+                                    Style="{StaticResource SecondaryButtonStyle}">
+                                <Button.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick"
+                                                Command="{Binding OpenInExplorerCommand}"
+                                                CommandParameter="{Binding CurrentImage}"/>
+                                </Button.InputBindings>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- 底部状态栏 -->
+        <Border Grid.Row="2"
+                Background="White"
+                BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="{StaticResource SpacingMD}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                          Text="{Binding StatusText}"
+                          Style="{StaticResource CaptionTextStyle}"
+                          VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Command="{Binding SelectAllCommand}"
+                            Style="{StaticResource TextButtonStyle}"
+                            Content="全选"
+                            Margin="0,0,16,0"/>
+
+                    <Button Command="{Binding ClearSelectionCommand}"
+                            Style="{StaticResource TextButtonStyle}"
+                            Content="取消选择"
+                            Visibility="{Binding SelectedCount, Converter={StaticResource IntToVisibilityConverter}}"
+                            Margin="0,0,16,0"/>
+
+                    <Button Content="确定"
+                            Click="OkButton_Click"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            MinWidth="80"
+                            Margin="0,0,16,0"/>
+
+                    <Button Content="取消"
+                            Click="CancelButton_Click"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            MinWidth="80"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -4,6 +4,8 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using XLib.WPF.WindowDefine;
+using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
+using WpfMouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 
 namespace XNode.SubSystem.WindowSystem
 {
@@ -63,9 +65,9 @@ namespace XNode.SubSystem.WindowSystem
             TipTextBlock.Inlines.Add(new Run(Message) { Foreground = _tip });
         }
 
-        private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) => DragMove();
+        private void TitleBar_MouseLeftButtonDown(object sender, WpfMouseButtonEventArgs e) => DragMove();
 
-        private void TipDialog_KeyDown(object sender, KeyEventArgs e)
+        private void TipDialog_KeyDown(object sender, WpfKeyEventArgs e)
         {
             if (e.Key == Key.Escape) Close();
         }

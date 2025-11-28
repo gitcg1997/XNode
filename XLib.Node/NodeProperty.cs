@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json;
 
 namespace XLib.Node;
 
@@ -74,7 +74,7 @@ public class CustomListProperty : NodeProperty
     public CustomListProperty(string itemList)
     {
         Type = "CustomList";
-        ItemList = JsonSerializer.Deserialize<List<string>>(itemList);
+        ItemList = JsonConvert.DeserializeObject<List<string>>(itemList) ?? new List<string>();
     }
 
     public List<string> ItemList { get; set; } = new List<string>();
@@ -85,5 +85,5 @@ public class CustomListProperty : NodeProperty
 
     public Action<int, string>? ItemChanged { get; set; } = null;
 
-    public override string ToString() => JsonSerializer.Serialize(ItemList);
+    public override string ToString() => JsonConvert.SerializeObject(ItemList);
 }

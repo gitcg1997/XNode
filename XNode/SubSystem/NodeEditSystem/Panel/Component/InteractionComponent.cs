@@ -41,6 +41,18 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             _hoverToolBar.Init();
             _hoverToolBar.ToolClick += HoverToolBar_ToolClick;
 
+            // 初始化对齐工具栏
+            _alignToolBar = new AlignToolBar
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+            };
+            _host.LayerToolBarCanvas.Children.Add(_alignToolBar);
+            _alignToolBar.UpdateLayout();
+            _alignToolBar.Visibility = Visibility.Collapsed;
+            _alignToolBar.Init();
+            _alignToolBar.ToolClick += AlignToolBar_ToolClick;
+
             // 监听清除拖放标志事件
             XNode.SubSystem.EventSystem.EM.Instance.Add(XNode.SubSystem.EventSystem.EventType.ClearDropFlags, OnClearDropFlags);
         }
@@ -64,6 +76,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             _host.OperateAreaGrid.MouseDown -= OperateArea_MouseDown;
             _host.OperateAreaGrid.MouseUp -= OperateArea_MouseUp;
             _hoverToolBar.Visibility = Visibility.Collapsed;
+            _alignToolBar.Visibility = Visibility.Collapsed;
         }
 
         protected override void Remove()
@@ -75,6 +88,9 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             _hoverToolBar.ToolClick -= HoverToolBar_ToolClick;
             _host.LayerToolBarCanvas.Children.Remove(_hoverToolBar);
             _hoverToolBar = null;
+            _alignToolBar.ToolClick -= AlignToolBar_ToolClick;
+            _host.LayerToolBarCanvas.Children.Remove(_alignToolBar);
+            _alignToolBar = null;
         }
 
         #endregion
@@ -133,10 +149,15 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
                 {
                     MainWindow.LogManager.LogInfo($"正在添加节点: {file.Name}, 类型: {nodeType.ToString()}");
 
+                    // 获取节点库名称：通过文件夹路径确定
+                    string nodeLibName = GetNodeLibNameFromFile(file);
+                    MainWindow.LogManager.LogInfo($"节点库名称: {nodeLibName}");
+
                     if (coreEditer != null)
                     {
                         // 创建节点实例
                         var nodeInstance = nodeType.NewInstance();
+                        nodeInstance.NodeLibName = nodeLibName;  // 设置节点库名称
                         nodeInstance.PinBreaked += (start, end) => { /* 空实现,将在 LoadNode 中设置 */ };
                         nodeInstance.TypeID = file.ID;
 
@@ -163,7 +184,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
                         MainWindow.LogManager.LogWarning("无法获取核心编辑器,使用原始方法添加节点");
 
                         // 如果无法获取核心编辑器,则使用原始方法
-                        NodeView? nodeView = component.DropNode(file.ID, nodeType, screenPoint);
+                        NodeView? nodeView = component.DropNode(file.ID, nodeType, nodeLibName, screenPoint);
                         if (nodeView != null)
                         {
                             nodeView.NodeBackMouseEnter = NodeBack_MouseEnter;
@@ -189,6 +210,56 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             {
                 MainWindow.LogManager.LogWarning("未成功添加任何节点");
             }
+        }
+
+        /// <summary>
+        /// 获取节点库名称：通过文件所在的根文件夹确定
+        /// </summary>
+        private string GetNodeLibNameFromFile(File file)
+        {
+            // 从文件向上查找,构建完整路径
+            Folder? current = file.Parent;
+            List<string> pathParts = new List<string>();
+            pathParts.Add(file.Name);
+
+            while (current != null)
+            {
+                pathParts.Insert(0, current.Name);
+                current = current.Parent;
+            }
+
+            string fullPath = string.Join(" -> ", pathParts);
+            MainWindow.LogManager.LogInfo($"[调试] 节点文件路径: {fullPath}");
+
+            // 第一层文件夹(根的直接子文件夹)就是节点库分类
+            // 路径格式: 根 -> [节点库名称] -> [子文件夹...] -> 文件
+            if (pathParts.Count < 2)
+            {
+                MainWindow.LogManager.LogInfo($"[调试] 路径层级不足,返回 Inner");
+                return "Inner";
+            }
+
+            // 第二个元素是节点库的分类名称(Title)
+            string libTitle = pathParts[1];
+            MainWindow.LogManager.LogInfo($"[调试] 节点库分类名称: {libTitle}");
+
+            // 内置节点库
+            if (libTitle == "内置节点")
+                return "Inner";
+
+            // 查找外部节点库
+            foreach (var libPair in NodeLibSystem.NodeLibManager.Instance.NodeLibDict)
+            {
+                MainWindow.LogManager.LogInfo($"[调试] 检查节点库: Name={libPair.Key}, Title={libPair.Value.Title}");
+                if (libPair.Value.Title == libTitle)
+                {
+                    MainWindow.LogManager.LogInfo($"[调试] 找到匹配的节点库: {libPair.Key}");
+                    return libPair.Key;  // 返回节点库的 Name
+                }
+            }
+
+            MainWindow.LogManager.LogInfo($"[调试] 未找到匹配的节点库,返回 Inner");
+            return "Inner";
         }
 
         /// <summary>
@@ -778,6 +849,36 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             }
         }
 
+        private void AlignToolBar_ToolClick(string name)
+        {
+            var selectedList = GetComponent<CardComponent>().SelectedCardList;
+            if (selectedList.Count < 2) return;
+
+            switch (name)
+            {
+                case "Tool_AlignLeft":
+                    AlignNodesLeft(selectedList);
+                    break;
+                case "Tool_AlignCenter":
+                    AlignNodesCenter(selectedList);
+                    break;
+                case "Tool_AlignRight":
+                    AlignNodesRight(selectedList);
+                    break;
+                case "Tool_AlignTop":
+                    AlignNodesTop(selectedList);
+                    break;
+                case "Tool_AlignBottom":
+                    AlignNodesBottom(selectedList);
+                    break;
+            }
+
+            // 对齐后更新UI
+            GetComponent<DrawingComponent>().UpdateConnectLine();
+            GetComponent<DrawingComponent>().UpdateSelectedBox();
+            UpdateHoverToolBar();
+        }
+
         #endregion
 
         #region 私有方法
@@ -845,6 +946,32 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
                 double top = rect.Top - 10 - _hoverToolBar.ActualHeight;
                 Canvas.SetLeft(_hoverToolBar, left + 1);
                 Canvas.SetTop(_hoverToolBar, top + 1);
+            }
+
+            // 更新对齐工具栏
+            UpdateAlignToolBar(selectedCount);
+        }
+
+        /// <summary>
+        /// 更新对齐工具栏
+        /// </summary>
+        private void UpdateAlignToolBar(int selectedCount)
+        {
+            // 只在选中多个节点时显示对齐工具栏
+            _alignToolBar.Visibility = selectedCount >= 2 ? Visibility.Visible : Visibility.Collapsed;
+
+            if (selectedCount >= 2)
+            {
+                List<NodeView> selectedList = GetComponent<CardComponent>().SelectedCardList;
+                Rect rect = selectedList[0].GetHittableRect();
+                for (int index = 1; index < selectedList.Count; index++)
+                {
+                    rect.Union(selectedList[index].GetHittableRect());
+                }
+                double left = Math.Round((rect.Right - rect.Left - _alignToolBar.ActualWidth) / 2) + rect.Left;
+                double top = rect.Bottom + 10;
+                Canvas.SetLeft(_alignToolBar, left + 1);
+                Canvas.SetTop(_alignToolBar, top + 1);
             }
         }
 
@@ -954,6 +1081,346 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
         }
 
         /// <summary>
+        /// 左对齐节点
+        /// </summary>
+        private void AlignNodesLeft(List<NodeView> nodes)
+        {
+            if (nodes.Count < 2) return;
+
+            // 保存旧位置
+            var oldPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+            var newPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+
+            // 找到最左边的世界X坐标
+            int minLeft = nodes.Min(n => n.NodeInstance.Point.X);
+
+            // 按Y坐标排序节点,从上到下
+            var sortedNodes = nodes.OrderBy(n => n.NodeInstance.Point.Y).ToList();
+
+            // 计算新的Y坐标,避免重叠
+            const int verticalSpacing = 10; // 节点之间的垂直间距
+            int currentY = sortedNodes[0].NodeInstance.Point.Y; // 从第一个节点的Y坐标开始
+
+            foreach (var node in sortedNodes)
+            {
+                // 保存旧位置 (世界坐标)
+                oldPositions[node] = new XLib.Node.NodePoint(node.NodeInstance.Point.X, node.NodeInstance.Point.Y);
+
+                // 计算新位置 (世界坐标)
+                newPositions[node] = new XLib.Node.NodePoint(minLeft, currentY);
+
+                // 为下一个节点计算Y坐标: 当前节点高度 + 间距
+                currentY += (int)node.ActualHeight + verticalSpacing;
+            }
+
+            // 通过命令系统执行对齐
+            var coreEditer = GetCoreEditer();
+            if (coreEditer != null)
+            {
+                var command = new XNode.Command.AlignNodesCommand(
+                    nodes,
+                    XNode.Command.AlignNodesCommand.AlignType.Left,
+                    oldPositions,
+                    newPositions,
+                    _host);
+                coreEditer.CommandManager.ExecuteCommand(command);
+
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点左对齐并自动排序");
+            }
+            else
+            {
+                // 降级处理: 直接应用
+                Point center = GetComponent<DrawingComponent>().WorldCenter;
+                foreach (var node in nodes)
+                {
+                    if (newPositions.TryGetValue(node, out var newPos))
+                    {
+                        node.NodeInstance.Point = newPos;
+                        node.Point = new Point(newPos.X, newPos.Y);
+                        Canvas.SetLeft(node, center.X + node.Point.X - 12);
+                        Canvas.SetTop(node, center.Y + node.Point.Y - 1);
+                    }
+                }
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点左对齐并自动排序 (未记录撤销历史)");
+            }
+        }
+
+        /// <summary>
+        /// 居中对齐节点
+        /// </summary>
+        private void AlignNodesCenter(List<NodeView> nodes)
+        {
+            if (nodes.Count < 2) return;
+
+            // 保存旧位置
+            var oldPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+            var newPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+
+            // 计算所有节点的平均中心X坐标 (世界坐标)
+            double totalCenterX = 0;
+            foreach (var node in nodes)
+            {
+                double centerX = node.NodeInstance.Point.X + node.ActualWidth / 2;
+                totalCenterX += centerX;
+            }
+            double avgCenterX = totalCenterX / nodes.Count;
+
+            // 按Y坐标排序节点,从上到下
+            var sortedNodes = nodes.OrderBy(n => n.NodeInstance.Point.Y).ToList();
+
+            // 计算新的Y坐标,避免重叠
+            const int verticalSpacing = 10; // 节点之间的垂直间距
+            int currentY = sortedNodes[0].NodeInstance.Point.Y; // 从第一个节点的Y坐标开始
+
+            foreach (var node in sortedNodes)
+            {
+                // 保存旧位置 (世界坐标)
+                oldPositions[node] = new XLib.Node.NodePoint(node.NodeInstance.Point.X, node.NodeInstance.Point.Y);
+
+                // 计算新位置 (世界坐标)
+                // 新的世界X = 平均中心X - 宽度/2
+                int newLeft = (int)(avgCenterX - node.ActualWidth / 2);
+                newPositions[node] = new XLib.Node.NodePoint(newLeft, currentY);
+
+                // 为下一个节点计算Y坐标: 当前节点高度 + 间距
+                currentY += (int)node.ActualHeight + verticalSpacing;
+            }
+
+            // 通过命令系统执行对齐
+            var coreEditer = GetCoreEditer();
+            if (coreEditer != null)
+            {
+                var command = new XNode.Command.AlignNodesCommand(
+                    nodes,
+                    XNode.Command.AlignNodesCommand.AlignType.Center,
+                    oldPositions,
+                    newPositions,
+                    _host);
+                coreEditer.CommandManager.ExecuteCommand(command);
+
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点居中对齐并自动排序");
+            }
+            else
+            {
+                // 降级处理: 直接应用
+                Point center = GetComponent<DrawingComponent>().WorldCenter;
+                foreach (var node in nodes)
+                {
+                    if (newPositions.TryGetValue(node, out var newPos))
+                    {
+                        node.NodeInstance.Point = newPos;
+                        node.Point = new Point(newPos.X, newPos.Y);
+                        Canvas.SetLeft(node, center.X + node.Point.X - 12);
+                        Canvas.SetTop(node, center.Y + node.Point.Y - 1);
+                    }
+                }
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点居中对齐并自动排序 (未记录撤销历史)");
+            }
+        }
+
+        /// <summary>
+        /// 右对齐节点
+        /// </summary>
+        private void AlignNodesRight(List<NodeView> nodes)
+        {
+            if (nodes.Count < 2) return;
+
+            // 保存旧位置
+            var oldPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+            var newPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+
+            // 找到最右边的位置 (世界坐标)
+            // 节点右边缘 = 节点世界X + 宽度
+            int maxRight = nodes.Max(n => n.NodeInstance.Point.X + (int)n.ActualWidth);
+
+            // 按Y坐标排序节点,从上到下
+            var sortedNodes = nodes.OrderBy(n => n.NodeInstance.Point.Y).ToList();
+
+            // 计算新的Y坐标,避免重叠
+            const int verticalSpacing = 10; // 节点之间的垂直间距
+            int currentY = sortedNodes[0].NodeInstance.Point.Y; // 从第一个节点的Y坐标开始
+
+            foreach (var node in sortedNodes)
+            {
+                // 保存旧位置 (世界坐标)
+                oldPositions[node] = new XLib.Node.NodePoint(node.NodeInstance.Point.X, node.NodeInstance.Point.Y);
+
+                // 计算新位置 (世界坐标)
+                // 新的世界X = 最右边 - 宽度
+                int newLeft = maxRight - (int)node.ActualWidth;
+                newPositions[node] = new XLib.Node.NodePoint(newLeft, currentY);
+
+                // 为下一个节点计算Y坐标: 当前节点高度 + 间距
+                currentY += (int)node.ActualHeight + verticalSpacing;
+            }
+
+            // 通过命令系统执行对齐
+            var coreEditer = GetCoreEditer();
+            if (coreEditer != null)
+            {
+                var command = new XNode.Command.AlignNodesCommand(
+                    nodes,
+                    XNode.Command.AlignNodesCommand.AlignType.Right,
+                    oldPositions,
+                    newPositions,
+                    _host);
+                coreEditer.CommandManager.ExecuteCommand(command);
+
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点右对齐并自动排序");
+            }
+            else
+            {
+                // 降级处理: 直接应用
+                Point center = GetComponent<DrawingComponent>().WorldCenter;
+                foreach (var node in nodes)
+                {
+                    if (newPositions.TryGetValue(node, out var newPos))
+                    {
+                        node.NodeInstance.Point = newPos;
+                        node.Point = new Point(newPos.X, newPos.Y);
+                        // 正确计算 Canvas 位置
+                        Canvas.SetLeft(node, center.X + node.Point.X - 12);
+                        Canvas.SetTop(node, center.Y + node.Point.Y - 1);
+                    }
+                }
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点右对齐并自动排序 (未记录撤销历史)");
+            }
+        }
+
+        /// <summary>
+        /// 上对齐节点
+        /// </summary>
+        private void AlignNodesTop(List<NodeView> nodes)
+        {
+            if (nodes.Count < 2) return;
+
+            // 保存旧位置
+            var oldPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+            var newPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+
+            // 找到最上边的世界Y坐标
+            int minTop = nodes.Min(n => n.NodeInstance.Point.Y);
+
+            // 按X坐标排序节点,从左到右
+            var sortedNodes = nodes.OrderBy(n => n.NodeInstance.Point.X).ToList();
+
+            // 计算新的X坐标,避免重叠
+            const int horizontalSpacing = 10; // 节点之间的水平间距
+            int currentX = sortedNodes[0].NodeInstance.Point.X; // 从第一个节点的X坐标开始
+
+            foreach (var node in sortedNodes)
+            {
+                // 保存旧位置 (世界坐标)
+                oldPositions[node] = new XLib.Node.NodePoint(node.NodeInstance.Point.X, node.NodeInstance.Point.Y);
+
+                // 计算新位置 (世界坐标)
+                newPositions[node] = new XLib.Node.NodePoint(currentX, minTop);
+
+                // 为下一个节点计算X坐标: 当前节点宽度 + 间距
+                currentX += (int)node.ActualWidth + horizontalSpacing;
+            }
+
+            // 通过命令系统执行对齐
+            var coreEditer = GetCoreEditer();
+            if (coreEditer != null)
+            {
+                var command = new XNode.Command.AlignNodesCommand(
+                    nodes,
+                    XNode.Command.AlignNodesCommand.AlignType.Top,
+                    oldPositions,
+                    newPositions,
+                    _host);
+                coreEditer.CommandManager.ExecuteCommand(command);
+
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点上对齐并自动排序");
+            }
+            else
+            {
+                // 降级处理: 直接应用
+                Point center = GetComponent<DrawingComponent>().WorldCenter;
+                foreach (var node in nodes)
+                {
+                    if (newPositions.TryGetValue(node, out var newPos))
+                    {
+                        node.NodeInstance.Point = newPos;
+                        node.Point = new Point(newPos.X, newPos.Y);
+                        Canvas.SetLeft(node, center.X + node.Point.X - 12);
+                        Canvas.SetTop(node, center.Y + node.Point.Y - 1);
+                    }
+                }
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点上对齐并自动排序 (未记录撤销历史)");
+            }
+        }
+
+        /// <summary>
+        /// 下对齐节点
+        /// </summary>
+        private void AlignNodesBottom(List<NodeView> nodes)
+        {
+            if (nodes.Count < 2) return;
+
+            // 保存旧位置
+            var oldPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+            var newPositions = new Dictionary<NodeView, XLib.Node.NodePoint>();
+
+            // 找到最下边的位置 (世界坐标)
+            // 节点下边缘 = 节点世界Y + 高度
+            int maxBottom = nodes.Max(n => n.NodeInstance.Point.Y + (int)n.ActualHeight);
+
+            // 按X坐标排序节点,从左到右
+            var sortedNodes = nodes.OrderBy(n => n.NodeInstance.Point.X).ToList();
+
+            // 计算新的X坐标,避免重叠
+            const int horizontalSpacing = 10; // 节点之间的水平间距
+            int currentX = sortedNodes[0].NodeInstance.Point.X; // 从第一个节点的X坐标开始
+
+            foreach (var node in sortedNodes)
+            {
+                // 保存旧位置 (世界坐标)
+                oldPositions[node] = new XLib.Node.NodePoint(node.NodeInstance.Point.X, node.NodeInstance.Point.Y);
+
+                // 计算新位置 (世界坐标)
+                // 新的世界Y = 最下边 - 高度
+                int newTop = maxBottom - (int)node.ActualHeight;
+                newPositions[node] = new XLib.Node.NodePoint(currentX, newTop);
+
+                // 为下一个节点计算X坐标: 当前节点宽度 + 间距
+                currentX += (int)node.ActualWidth + horizontalSpacing;
+            }
+
+            // 通过命令系统执行对齐
+            var coreEditer = GetCoreEditer();
+            if (coreEditer != null)
+            {
+                var command = new XNode.Command.AlignNodesCommand(
+                    nodes,
+                    XNode.Command.AlignNodesCommand.AlignType.Bottom,
+                    oldPositions,
+                    newPositions,
+                    _host);
+                coreEditer.CommandManager.ExecuteCommand(command);
+
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点下对齐并自动排序");
+            }
+            else
+            {
+                // 降级处理: 直接应用
+                Point center = GetComponent<DrawingComponent>().WorldCenter;
+                foreach (var node in nodes)
+                {
+                    if (newPositions.TryGetValue(node, out var newPos))
+                    {
+                        node.NodeInstance.Point = newPos;
+                        node.Point = new Point(newPos.X, newPos.Y);
+                        Canvas.SetLeft(node, center.X + node.Point.X - 12);
+                        Canvas.SetTop(node, center.Y + node.Point.Y - 1);
+                    }
+                }
+                MainWindow.LogManager.LogInfo($"已将 {nodes.Count} 个节点下对齐并自动排序 (未记录撤销历史)");
+            }
+        }
+
+        /// <summary>
         /// 重置组件
         /// </summary>
         private void ResetComponent()
@@ -970,6 +1437,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
             _rightHitedPin = null;
 
             _hoverToolBar.Visibility = Visibility.Collapsed;
+            _alignToolBar.Visibility = Visibility.Collapsed;
             var propertyArea = (Border)_host.FindName("PropertyArea");
             var propertyPanel = (XNode.SubSystem.NodeEditSystem.Control.NodePropertyPanel)_host.FindName("PropertyPanel");
             
@@ -999,6 +1467,9 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Component
 
         /// <summary>悬浮工具栏</summary>
         private HoverToolBar _hoverToolBar;
+
+        /// <summary>对齐工具栏</summary>
+        private AlignToolBar _alignToolBar;
 
         /// <summary>标记刚刚拖放了节点</summary>
         private bool _justDroppedNode = false;

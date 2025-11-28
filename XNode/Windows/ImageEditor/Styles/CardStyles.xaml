@@ -1,0 +1,217 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 引入设计令牌 -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/XNode;component/Windows/ImageEditor/Styles/DesignTokens.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- ========================================
+         卡片和容器样式
+         ======================================== -->
+
+    <!-- 基础卡片样式 - Base Card -->
+    <Style x:Key="BaseCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLG}"/>
+        <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+        <Setter Property="Padding" Value="{StaticResource SpacingLG}"/>
+        <Setter Property="Margin" Value="{StaticResource SpacingMD}"/>
+    </Style>
+
+    <!-- 悬浮卡片样式 - Elevated Card -->
+    <Style x:Key="ElevatedCardStyle" TargetType="Border" BasedOn="{StaticResource BaseCardStyle}">
+        <Setter Property="Effect" Value="{StaticResource ElevatedShadow}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="#60000000" Direction="270" ShadowDepth="6" BlurRadius="16" Opacity="0.5"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- 任务卡片样式 - Task Card -->
+    <Style x:Key="TaskCardStyle" TargetType="Border" BasedOn="{StaticResource BaseCardStyle}">
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+        <Setter Property="BorderThickness" Value="{StaticResource BorderThin}"/>
+        <Setter Property="Margin" Value="{StaticResource SpacingSM}"/>
+        <Setter Property="Padding" Value="{StaticResource SpacingMD}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="#402196F3" Direction="270" ShadowDepth="3" BlurRadius="10" Opacity="0.3"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- 工具栏容器样式 - Toolbar Container -->
+    <Style x:Key="ToolbarContainerStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="{StaticResource SpacingLG}"/>
+    </Style>
+
+    <!-- 状态栏容器样式 - Status Bar Container -->
+    <Style x:Key="StatusBarContainerStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+        <Setter Property="Padding" Value="{StaticResource SpacingMD}"/>
+        <Setter Property="Height" Value="32"/>
+    </Style>
+
+    <!-- 侧边栏容器样式 - Sidebar Container -->
+    <Style x:Key="SidebarContainerStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        <Setter Property="Width" Value="280"/>
+    </Style>
+
+    <!-- 内容区域容器样式 - Content Area Container -->
+    <Style x:Key="ContentAreaStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+        <Setter Property="Padding" Value="{StaticResource SpacingLG}"/>
+    </Style>
+
+    <!-- 分组容器样式 - Group Container -->
+    <Style x:Key="GroupContainerStyle" TargetType="GroupBox">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSubtitle}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Margin" Value="{StaticResource SpacingMD}"/>
+        <Setter Property="Padding" Value="{StaticResource SpacingMD}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Header -->
+                        <Border Grid.Row="0" 
+                                Background="{StaticResource SurfaceBrush}"
+                                CornerRadius="8,8,0,0"
+                                Padding="{StaticResource SpacingMD}"
+                                BorderBrush="{StaticResource DividerBrush}"
+                                BorderThickness="1,1,1,0">
+                            <ContentPresenter ContentSource="Header" 
+                                            TextBlock.FontWeight="SemiBold"
+                                            TextBlock.FontSize="{StaticResource FontSizeSubtitle}"/>
+                        </Border>
+                        
+                        <!-- Content -->
+                        <Border Grid.Row="1" 
+                                Background="{StaticResource CardBackgroundBrush}"
+                                CornerRadius="0,0,8,8"
+                                Padding="{TemplateBinding Padding}"
+                                BorderBrush="{StaticResource DividerBrush}"
+                                BorderThickness="1,0,1,1"
+                                Effect="{StaticResource CardShadow}">
+                            <ContentPresenter/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 信息面板样式 - Info Panel -->
+    <Style x:Key="InfoPanelStyle" TargetType="Border" BasedOn="{StaticResource BaseCardStyle}">
+        <Setter Property="Background" Value="#F0F8FF"/>
+        <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,3"/>
+    </Style>
+
+    <!-- 警告面板样式 - Warning Panel -->
+    <Style x:Key="WarningPanelStyle" TargetType="Border" BasedOn="{StaticResource BaseCardStyle}">
+        <Setter Property="Background" Value="#FFF8E1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,3"/>
+    </Style>
+
+    <!-- 错误面板样式 - Error Panel -->
+    <Style x:Key="ErrorPanelStyle" TargetType="Border" BasedOn="{StaticResource BaseCardStyle}">
+        <Setter Property="Background" Value="#FFEBEE"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,3"/>
+    </Style>
+
+    <!-- 成功面板样式 - Success Panel -->
+    <Style x:Key="SuccessPanelStyle" TargetType="Border" BasedOn="{StaticResource BaseCardStyle}">
+        <Setter Property="Background" Value="#E8F5E8"/>
+        <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,3"/>
+    </Style>
+
+    <!-- 可折叠面板样式 - Collapsible Panel -->
+    <Style x:Key="CollapsiblePanelStyle" TargetType="Expander">
+        <Setter Property="FontFamily" Value="{StaticResource PrimaryFontFamily}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}"/>
+        <Setter Property="Margin" Value="{StaticResource SpacingMD}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Border Style="{StaticResource BaseCardStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Header -->
+                            <ToggleButton x:Name="HeaderSite" 
+                                        Grid.Row="0"
+                                        IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="{StaticResource SpacingMD}"
+                                        HorizontalContentAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="▶" 
+                                             x:Name="ExpandIcon"
+                                             FontSize="12" 
+                                             Margin="0,0,8,0"
+                                             RenderTransformOrigin="0.5,0.5">
+                                        <TextBlock.RenderTransform>
+                                            <RotateTransform Angle="0"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                    <ContentPresenter ContentSource="Header"/>
+                                </StackPanel>
+                            </ToggleButton>
+                            
+                            <!-- Content -->
+                            <ContentPresenter x:Name="ExpandSite" 
+                                            Grid.Row="1" 
+                                            Visibility="Collapsed"
+                                            Margin="{StaticResource SpacingMD}"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="ExpandIcon" Property="RenderTransform">
+                                <Setter.Value>
+                                    <RotateTransform Angle="90"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

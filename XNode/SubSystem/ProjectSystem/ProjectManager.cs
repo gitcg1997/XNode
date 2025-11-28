@@ -95,7 +95,7 @@ namespace XNode.SubSystem.ProjectSystem
             // 关闭当前项目
             CloseProject();
             // 加载项目
-            bool success = ArchiveManager.Instance.LoadArchive(file, filePath, (JObject)file.Data);
+            bool success = ArchiveManager.Instance.LoadArchive(file, filePath);
             if (success)
             {
                 SwitchProject(filePath);
@@ -202,8 +202,14 @@ namespace XNode.SubSystem.ProjectSystem
 
                 // 生成存档数据
                 ArchiveFile file = ArchiveManager.Instance.GenerateArchive();
-                // 序列化存档数据
-                string jsonData = JsonConvert.SerializeObject(file, Formatting.Indented);
+                // 序列化存档数据 - 使用 TypeNameHandling.Auto 保留类型信息
+                var settings = new JsonSerializerSettings
+                {
+                    Formatting = Formatting.Indented,
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                string jsonData = JsonConvert.SerializeObject(file, settings);
                 // 创建文件并写入数据，文件已存在则覆盖
                 File.WriteAllText(CurrentProject.ProjectFilePath, jsonData, Encoding.UTF8);
                 // 设置为已保存
@@ -233,11 +239,72 @@ namespace XNode.SubSystem.ProjectSystem
         {
             if (CurrentProject == null) return "";
 
-            NodeProject backup = CurrentProject.Clone();
-            backup.ProjectFileName += "_Backup";
-            File.Copy(CurrentProject.ProjectFilePath, backup.ProjectFilePath, true);
+            try
+            {
+                string projectDir = CurrentProject.ProjectPath;
+                string projectName = CurrentProject.ProjectName;
+                string backupDir = Path.Combine(projectDir, "Backups");
 
-            return backup.ProjectFilePath;
+                // 创建备份目录
+                if (!Directory.Exists(backupDir))
+                {
+                    Directory.CreateDirectory(backupDir);
+                    MainWindow.LogManager.LogInfo($"创建备份目录: {backupDir}");
+                }
+
+                // 生成带时间戳的备份文件名
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string backupFileName = $"{projectName}_{timestamp}.xnode";
+                string backupFilePath = Path.Combine(backupDir, backupFileName);
+
+                // 复制当前项目文件到备份目录
+                File.Copy(CurrentProject.ProjectFilePath, backupFilePath, true);
+                MainWindow.LogManager.LogInfo($"创建项目备份: {backupFileName}");
+
+                // 清理旧备份,只保留最近5个
+                CleanOldBackups(backupDir, projectName, 5);
+
+                return backupFilePath;
+            }
+            catch (Exception ex)
+            {
+                MainWindow.LogManager.LogWarning($"备份项目失败: {ex.Message}");
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// 清理旧备份
+        /// </summary>
+        /// <param name="backupDir">备份目录</param>
+        /// <param name="projectName">项目名称</param>
+        /// <param name="keepCount">保留备份数量</param>
+        private void CleanOldBackups(string backupDir, string projectName, int keepCount)
+        {
+            try
+            {
+                // 获取所有备份文件
+                var backupFiles = Directory.GetFiles(backupDir, $"{projectName}_*.xnode")
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(f => f.CreationTime)
+                    .ToList();
+
+                // 删除超出保留数量的旧备份
+                if (backupFiles.Count > keepCount)
+                {
+                    int deleteCount = 0;
+                    for (int i = keepCount; i < backupFiles.Count; i++)
+                    {
+                        backupFiles[i].Delete();
+                        deleteCount++;
+                    }
+                    MainWindow.LogManager.LogInfo($"清理了 {deleteCount} 个旧备份");
+                }
+            }
+            catch (Exception ex)
+            {
+                MainWindow.LogManager.LogWarning($"清理旧备份失败: {ex.Message}");
+            }
         }
 
         #endregion

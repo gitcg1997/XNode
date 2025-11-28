@@ -1,12 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet --version:*)",
       "Bash(dotnet build:*)",
-      "Bash(cat:*)",
-      "Bash(git checkout:*)",
-      "Bash(mkdir:*)",
-      "Bash(dotnet sln:*)"
+      "Bash(taskkill:*)",
+      "Bash(xargs:*)",
+      "Bash(dotnet clean:*)"
     ],
     "deny": [],
     "ask": []

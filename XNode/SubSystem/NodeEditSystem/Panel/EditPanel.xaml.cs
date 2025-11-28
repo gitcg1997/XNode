@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using XLib.Base;
 using XLib.Base.UIComponent;
@@ -5,8 +6,11 @@ using XLib.Base.VirtualDisk;
 using XLib.Node;
 using XNode.SubSystem.EventSystem;
 using XNode.SubSystem.ExecutionSystem;
+using XNode.SubSystem.NodeEditSystem.Control;
 using XNode.SubSystem.NodeEditSystem.Define;
 using XNode.SubSystem.NodeEditSystem.Panel.Component;
+using WpfUserControl = System.Windows.Controls.UserControl;
+using WpfPoint = System.Windows.Point;
 
 namespace XNode.SubSystem.NodeEditSystem.Panel
 {
@@ -150,13 +154,44 @@ namespace XNode.SubSystem.NodeEditSystem.Panel
         }
 
         /// <summary>
-        /// 查找引脚
+        /// 刷新节点的 Canvas 位置(根据世界坐标和世界中心计算)
+        /// </summary>
+        public void RefreshNodeCanvasPosition(NodeView node)
+        {
+            WpfPoint center = _drawingComponent.WorldCenter;
+            Canvas.SetLeft(node, center.X + node.Point.X - 12);
+            Canvas.SetTop(node, center.Y + node.Point.Y - 1);
+        }
+
+        /// <summary>
+        /// 查找引脚(支持旧格式和新格式)
         /// </summary>
         public PinBase? FindPin(PinPath path)
         {
+            // 查找节点
+            NodeBase? targetNode = null;
             foreach (var node in _nodeComponent.NodeList)
-                if (node.ID == path.NodeID) return node.FindPin(path.NodeVersion, path.GroupIndex, path.PinIndex);
-            return null;
+            {
+                if (node.ID == path.NodeID)
+                {
+                    targetNode = node;
+                    break;
+                }
+            }
+
+            if (targetNode == null) return null;
+
+            // 根据路径格式调用对应的 FindPin 方法
+            if (path.IsLegacyFormat)
+            {
+                // 旧格式: 基于索引
+                return targetNode.FindPin(path.NodeVersion, path.GroupIndex, path.PinIndex);
+            }
+            else
+            {
+                // 新格式: 基于名称
+                return targetNode.FindPin(path.GroupName, path.PinType);
+            }
         }
 
         /// <summary>

@@ -1,0 +1,178 @@
+﻿<UserControl x:Class="MaterialDesignDemo.Lists"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:domain="clr-namespace:MaterialDesignDemo.Domain"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:smtx="clr-namespace:ShowMeTheXAML;assembly=ShowMeTheXAML"
+             d:DataContext="{d:DesignInstance domain:ListsAndGridsViewModel}"
+             d:DesignHeight="1080"
+             d:DesignWidth="1920"
+             mc:Ignorable="d">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBlock.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ToggleButton.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <StackPanel>
+    <TextBlock Style="{StaticResource PageTitleTextBlock}" Text="List" />
+    <TextBlock Style="{StaticResource PageSectionTitleTextBlock}" Text="ListBox" />
+
+    <WrapPanel ItemWidth="316">
+      <StackPanel Margin="0,0,16,16">
+        <smtx:XamlDisplay Margin="0,0,0,8" UniqueKey="list_1">
+          <ListBox IsEnabled="{Binding IsChecked, ElementName=EnableListBox}">
+            <!--
+            You can override the hover background color for all items in the listbox by setting the ListBox.ItemContainerStyle
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
+                <Setter Property="materialDesign:ListBoxItemAssist.HoverBackground" Value="Fuchsia"/>
+                <Setter Property="materialDesign:ListBoxItemAssist.SelectedFocusedBackground" Value="Fuchsia"/>
+                <Setter Property="materialDesign:ListBoxItemAssist.SelectedUnfocusedBackground" Value="Lime"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            -->
+
+                        <TextBlock Text="Plain" />
+            <TextBlock Text="Old" />
+            <TextBlock Text="ListBox" />
+            <TextBlock Text="Full of junk" />
+          </ListBox>
+        </smtx:XamlDisplay>
+
+        <CheckBox Name="EnableListBox"
+                  Content="Enabled"
+                  IsChecked="True" />
+      </StackPanel>
+
+      <smtx:XamlDisplay Margin="0,0,16,16" UniqueKey="list_2">
+        <Grid>
+          <ListBox materialDesign:ListBoxItemAssist.ShowSelection="False">
+            <!--
+                        Alternatively you can specify ListBoxItemAssist.ShowSelection on individual items
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
+                                <Setter Property="materialDesign:ListBoxItemAssist.ShowSelection" Value="False"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+            -->
+            <TextBlock Text="Listbox" />
+            <TextBlock Text="Without" />
+            <TextBlock Text="Selection" />
+            <TextBlock Text="Highlights" />
+          </ListBox>
+        </Grid>
+
+      </smtx:XamlDisplay>
+
+      <smtx:XamlDisplay Margin="0,0,16,16" UniqueKey="list_3">
+        <!-- piece together your own items control to create some nice stuff that will make everyone think you are cool. and rightly so, because you are cool.  you might even be a hipster for all I know -->
+        <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Items1}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type domain:SelectableViewModel}">
+              <Border x:Name="Border" Padding="8">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition SharedSizeGroup="Checkerz" />
+                    <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
+                  <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsSelected}" />
+
+                  <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                    <TextBlock FontWeight="Bold" Text="{Binding Name}" />
+                    <TextBlock Text="{Binding Description}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                  <Setter TargetName="Border" Property="Background" Value="{DynamicResource MaterialDesignSelection}" />
+                </DataTrigger>
+              </DataTemplate.Triggers>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </smtx:XamlDisplay>
+
+      <smtx:XamlDisplay Margin="0,0,16,16" UniqueKey="list_4">
+        <!-- and here's another -->
+        <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Items2}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type domain:SelectableViewModel}">
+              <Border x:Name="Border"
+                      Padding="8"
+                      BorderBrush="{DynamicResource MaterialDesignDivider}"
+                      BorderThickness="0,0,0,1">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition SharedSizeGroup="Checkerz" />
+                    <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
+
+                  <ToggleButton VerticalAlignment="Center"
+                                Content="{Binding Code}"
+                                IsChecked="{Binding IsSelected}"
+                                Style="{StaticResource MaterialDesignActionLightToggleButton}" />
+                  <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                    <TextBlock FontWeight="Bold" Text="{Binding Name}" />
+                    <TextBlock Text="{Binding Description}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                  <Setter TargetName="Border" Property="Background" Value="{DynamicResource MaterialDesignSelection}" />
+                </DataTrigger>
+              </DataTemplate.Triggers>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </smtx:XamlDisplay>
+    </WrapPanel>
+
+    <Rectangle Style="{StaticResource PageSectionSeparator}" />
+    <TextBlock Style="{StaticResource PageSectionTitleTextBlock}" Text="ListView" />
+
+    <smtx:XamlDisplay UniqueKey="list_5">
+      <ListView>
+        <ListViewItem Content="Hello" />
+        <ListViewItem Content="World" />
+        <ListViewItem Content=":)" />
+      </ListView>
+    </smtx:XamlDisplay>
+
+    <Rectangle Style="{StaticResource PageSectionSeparator}" />
+    <TextBlock Style="{StaticResource PageSectionTitleTextBlock}" Text="ListView.GridView" />
+
+    <smtx:XamlDisplay UniqueKey="list_6">
+      <ListView ItemsSource="{Binding Items1}">
+        <ListView.View>
+          <GridView>
+            <GridViewColumn DisplayMemberBinding="{Binding Code}" Header="Code" />
+            <GridViewColumn DisplayMemberBinding="{Binding Name}" Header="Name" />
+            <GridViewColumn DisplayMemberBinding="{Binding Description}" Header="Description" />
+            <GridViewColumn Header="Options">
+              <GridViewColumn.CellTemplate>
+                <DataTemplate>
+                  <ComboBox Width="100">
+                    <ComboBoxItem Content="Test" />
+                    <ComboBoxItem Content="Test2" />
+                    <ComboBoxItem Content="Test3" />
+                  </ComboBox>
+                </DataTemplate>
+              </GridViewColumn.CellTemplate>
+            </GridViewColumn>
+          </GridView>
+        </ListView.View>
+      </ListView>
+    </smtx:XamlDisplay>
+  </StackPanel>
+</UserControl>

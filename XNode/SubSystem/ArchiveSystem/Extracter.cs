@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using System.Security.Cryptography;
+using System.Text;
 using XLib.Node;
 using XNode.AppTool;
 using XNode.SubSystem.ArchiveSystem.Define.Data_1_0;
@@ -23,6 +25,25 @@ public class Extracter
     }
 
     /// <summary>
+    /// 计算数据校验和
+    /// </summary>
+    public static string CalculateChecksum(Data_1_0 data)
+    {
+        try
+        {
+            var json = JsonConvert.SerializeObject(data);
+            using var md5 = MD5.Create();
+            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(json));
+            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        }
+        catch (Exception ex)
+        {
+            MainWindow.LogManager.LogWarning($"计算校验和失败: {ex.Message}");
+            return "";
+        }
+    }
+
+    /// <summary>
     /// 填充节点列表
     /// </summary>
     private static void FillNodeList(Data_1_0 data)
@@ -42,12 +63,12 @@ public class Extracter
             // 参数与属性
             NodeData nodeData = new NodeData
             {
-                BaseData = baseData.ToString(),
+                BaseData = baseData,
                 ParaDict = node.GetParaDict(),
                 PropertyDict = node.GetPropertyDict(),
             };
-            // 添加数据
-            data.NodeList.Add(JsonConvert.SerializeObject(nodeData));
+            // 添加数据 - 直接添加对象,不再序列化为字符串
+            data.NodeList.Add(nodeData);
         }
     }
 
@@ -58,7 +79,7 @@ public class Extracter
     {
         // 连接信息
         Dictionary<PinBase, HashSet<PinBase>> connectInfo = new Dictionary<PinBase, HashSet<PinBase>>();
-        // 遍历节点，填充连接信息
+        // 遍历节点,填充连接信息
         foreach (var node in WM.Main.Editer.NodeList)
         {
             // 遍历全部引脚
@@ -72,7 +93,7 @@ public class Extracter
                 foreach (var target in pin.TargetList) connectInfo[pin].Add(target);
             }
         }
-        // 遍历连接信息，填充连接线数据
+        // 遍历连接信息,填充连接线数据
         foreach (var pair in connectInfo)
         {
             PinPath startPath = pair.Key.GetPinPath();
@@ -84,7 +105,8 @@ public class Extracter
                     Start = startPath.ToString(),
                     End = endPath.ToString(),
                 };
-                data.ConnectLineList.Add(lineData.ToString());
+                // 直接添加对象,不再序列化为字符串
+                data.ConnectLineList.Add(lineData);
             }
         }
     }

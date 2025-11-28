@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFrameworks>net462;net8.0-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <MDIXVersion Condition="$(MDIXVersion) == '' Or $(MDIXVersion) == '*Undefined*'">1.0.1</MDIXVersion>
+    <MDIXVersion>$([System.Text.RegularExpressions.Regex]::Replace("$(MDIXVersion)", "-ci\d+$", ""))</MDIXVersion>
+    <AssemblyTitle>MaterialDesignThemes.Wpf</AssemblyTitle>
+    <Product>MaterialDesignColors.Wpf</Product>
+    <Description>Material Design in XAML Toolkit - WPF Themes</Description>
+    <Version>$(MDIXVersion)</Version>
+    <AssemblyVersion>$(MDIXVersion)</AssemblyVersion>
+    <NoWarn>CS1591;CS1574</NoWarn>
+    <DocumentationFile>bin\$(Configuration)\MaterialDesignThemes.Wpf.xml</DocumentationFile>
+    
+    <!-- Package Properties -->
+    <PackageId>MaterialDesignThemes</PackageId>
+    <Title>Material Design Themes XAML Resources</Title>
+    <PackageDescription>ResourceDictionary instances containing Material Design templates and styles for WPF controls in .NET.</PackageDescription>
+    <PackageTags>WPF XAML Material Design Theme Colour Color UI UX</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Roboto\*.ttf" />
+    <Content Include="Resources\Roboto\*.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <None Remove="Resources\Noto\*.ttf" />
+    <None Remove="Resources\Noto\OFL.txt" />
+    <Content Include="Resources\Noto\*.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Shims\IsExternalInit.cs" Link="IsExternalInit.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MaterialDesignColors.Wpf\MaterialDesignColors.Wpf.csproj" />
+  </ItemGroup>
+
+  <!-- This passes the environment variable values into assembly attributes that can be read in code -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>MDIXVersion</_Parameter1>
+      <_Parameter2>$(MDIXVersion)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+  
+  <!-- Package Content -->
+  <ItemGroup>
+    <!-- Common content inherited from Directory.Build.props -->
+    <!-- Project-specific content -->
+    <None Include="Resources\Roboto\*.ttf" Pack="true" PackagePath="build\Resources\Roboto" />
+    <None Include="MaterialDesignThemes.targets" Pack="true" PackagePath="build" />
+    <None Include="VisualStudioToolsManifest.xml" Pack="true" PackagePath="tools" />
+  </ItemGroup>
+</Project>

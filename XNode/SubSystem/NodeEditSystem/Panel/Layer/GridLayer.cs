@@ -2,6 +2,8 @@
 using System.Windows;
 using System.Windows.Media;
 using XLib.WPF.Drawing;
+using WpfPoint = System.Windows.Point;
+using WpfPen = System.Windows.Media.Pen;
 
 namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
 {
@@ -12,7 +14,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
     {
         #region 属性
 
-        public Point GridCenter { get; set; }
+        public WpfPoint GridCenter { get; set; }
 
         public int GridLineCount { get; private set; }
 
@@ -34,7 +36,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
             _centerList.Freeze();
         }
 
-        public void MoveLayer(Point offset)
+        public void MoveLayer(WpfPoint offset)
         {
             _moveOffset = offset;
             Update();
@@ -42,7 +44,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
 
         public void Reset()
         {
-            _centerOffset = new Point();
+            _centerOffset = new WpfPoint();
             Update();
         }
 
@@ -53,24 +55,24 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
         /// </summary>
         public void ApplyOffset()
         {
-            _centerOffset = new Point(_centerOffset.X + _moveOffset.X, _centerOffset.Y + _moveOffset.Y);
-            _moveOffset = new Point();
+            _centerOffset = new WpfPoint(_centerOffset.X + _moveOffset.X, _centerOffset.Y + _moveOffset.Y);
+            _moveOffset = new WpfPoint();
         }
 
         /// <summary>
         /// 获取世界坐标
         /// </summary>
-        public Point GetWorldPoint(Point screenPoint)
+        public WpfPoint GetWorldPoint(WpfPoint screenPoint)
         {
-            return new Point(screenPoint.X - GridCenter.X, screenPoint.Y - GridCenter.Y);
+            return new WpfPoint(screenPoint.X - GridCenter.X, screenPoint.Y - GridCenter.Y);
         }
 
         /// <summary>
         /// 获取屏幕坐标
         /// </summary>
-        public Point GetScreenPoint(Point worldPoint)
+        public WpfPoint GetScreenPoint(WpfPoint worldPoint)
         {
-            return new Point(GridCenter.X + worldPoint.X, GridCenter.Y + worldPoint.Y);
+            return new WpfPoint(GridCenter.X + worldPoint.X, GridCenter.Y + worldPoint.Y);
         }
 
         #endregion
@@ -88,8 +90,8 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
             int subIndex;
 
             // 更新中心点
-            Point realOffset = new Point(_centerOffset.X + _moveOffset.X, _centerOffset.Y + _moveOffset.Y);
-            GridCenter = new Point((int)Width / 2 + realOffset.X, (int)Height / 2 + realOffset.Y);
+            WpfPoint realOffset = new WpfPoint(_centerOffset.X + _moveOffset.X, _centerOffset.Y + _moveOffset.Y);
+            GridCenter = new WpfPoint((int)Width / 2 + realOffset.X, (int)Height / 2 + realOffset.Y);
 
             // 更新绘图起始点
             UpdateDrawStart();
@@ -180,11 +182,11 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
 
         #region 画笔、画刷
 
-        private readonly Pen _normalLine = new(new SolidColorBrush(Color.FromArgb(255, 30, 30, 30)), 2);
-        private readonly Pen _microLine = new(new SolidColorBrush(Color.FromArgb(255, 20, 20, 20)), 2);
-        private readonly Pen _centerLine = new(new SolidColorBrush(Color.FromArgb(255, 60, 60, 60)), 2);
-        private readonly Pen _centerList = new(new SolidColorBrush(Color.FromArgb(255, 60, 60, 60)), 2);
-        private Pen? _currentPen;
+        private readonly WpfPen _normalLine = new(new SolidColorBrush(Color.FromArgb(255, 30, 30, 30)), 2);
+        private readonly WpfPen _microLine = new(new SolidColorBrush(Color.FromArgb(255, 20, 20, 20)), 2);
+        private readonly WpfPen _centerLine = new(new SolidColorBrush(Color.FromArgb(255, 60, 60, 60)), 2);
+        private readonly WpfPen _centerList = new(new SolidColorBrush(Color.FromArgb(255, 60, 60, 60)), 2);
+        private WpfPen? _currentPen;
 
         #endregion
 
@@ -200,9 +202,9 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
         /// <summary>高度细分量</summary>
         private readonly int _subdivideHeight = 4;
 
-        private Point _drawStart = new Point();
-        private Point _centerOffset = new Point();
-        private Point _moveOffset = new Point();
+        private WpfPoint _drawStart = new WpfPoint();
+        private WpfPoint _centerOffset = new WpfPoint();
+        private WpfPoint _moveOffset = new WpfPoint();
 
         #endregion
     }

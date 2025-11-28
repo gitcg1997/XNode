@@ -1,0 +1,522 @@
+<Window x:Class="XNode.Windows.ImageEditor.CaptureWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="屏幕截图选择"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        WindowState="Maximized"
+        Background="#33000000"
+        KeyDown="Window_KeyDown">
+
+    <Grid>
+        <!-- 背景遮罩 -->
+        <Rectangle Fill="#33000000"/>
+
+        <!-- ====================================
+             模式选择面板
+             ==================================== -->
+        <Border Name="ModeSelectionPanel"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="White"
+                CornerRadius="16"
+                Padding="40"
+                Visibility="Visible">
+            <Border.Effect>
+                <DropShadowEffect Color="#40000000" Direction="270" ShadowDepth="8" BlurRadius="20" Opacity="0.5"/>
+            </Border.Effect>
+            <StackPanel>
+                <!-- 标题 -->
+                <TextBlock Text="📸 选择截图模式"
+                         FontFamily="Microsoft YaHei UI"
+                         FontSize="24"
+                         FontWeight="SemiBold"
+                         Foreground="#1976D2"
+                         HorizontalAlignment="Center"
+                         Margin="0,0,0,32"/>
+
+                <!-- 自动检测按钮 -->
+                <Button Name="AutoDetectButton"
+                        Click="AutoDetectButton_Click"
+                        Background="#2196F3"
+                        BorderThickness="0"
+                        Padding="24,16"
+                        Margin="0,0,0,16"
+                        Cursor="Hand"
+                        >
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="12"
+                                    Padding="{TemplateBinding Padding}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#402196F3" Direction="270" ShadowDepth="2" BlurRadius="8" Opacity="0.4"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                        <iconPacks:PackIconMaterial Kind="CursorDefaultClick"
+                                                                   Width="32" Height="32"
+                                                                   Foreground="White"
+                                                                   Margin="0,0,12,0"/>
+                                        <TextBlock Text="自动检测窗口/元素"
+                                                 FontFamily="Microsoft YaHei UI"
+                                                 FontSize="18"
+                                                 FontWeight="SemiBold"
+                                                 Foreground="White"
+                                                 VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="将鼠标移动到目标窗口或UI元素上，系统自动识别并截图"
+                                             FontFamily="Microsoft YaHei UI"
+                                             FontSize="12"
+                                             Foreground="#E3F2FD"
+                                             TextWrapping="Wrap"
+                                             HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#1E88E5"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#1976D2"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- 手动拖拽按钮 -->
+                <Button Name="ManualDragButton"
+                        Click="ManualDragButton_Click"
+                        Background="#4CAF50"
+                        BorderThickness="0"
+                        Padding="24,16"
+                        Cursor="Hand"
+                        >
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="12"
+                                    Padding="{TemplateBinding Padding}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#404CAF50" Direction="270" ShadowDepth="2" BlurRadius="8" Opacity="0.4"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                        <iconPacks:PackIconMaterial Kind="VectorSelection"
+                                                                   Width="32" Height="32"
+                                                                   Foreground="White"
+                                                                   Margin="0,0,12,0"/>
+                                        <TextBlock Text="手动拖拽选择区域"
+                                                 FontFamily="Microsoft YaHei UI"
+                                                 FontSize="18"
+                                                 FontWeight="SemiBold"
+                                                 Foreground="White"
+                                                 VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="通过鼠标拖拽自定义选择要截取的屏幕区域"
+                                             FontFamily="Microsoft YaHei UI"
+                                             FontSize="12"
+                                             Foreground="#E8F5E9"
+                                             TextWrapping="Wrap"
+                                             HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#43A047"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#388E3C"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- ���示信息 -->
+                <TextBlock Text="按 ESC 键可随时取消"
+                         FontFamily="Microsoft YaHei UI"
+                         FontSize="11"
+                         Foreground="#757575"
+                         HorizontalAlignment="Center"
+                         Margin="0,24,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ====================================
+             自动检测模式面板
+             ==================================== -->
+        <Grid Name="AutoDetectPanel" Visibility="Collapsed">
+            <!-- 高亮矩形 -->
+            <Canvas>
+                <Rectangle Name="DetectionHighlight"
+                          Stroke="#FF9800"
+                          StrokeThickness="3"
+                          Fill="Transparent"
+                          Visibility="Collapsed">
+                    <Rectangle.Effect>
+                        <DropShadowEffect Color="#FF9800" Direction="0" ShadowDepth="0" BlurRadius="12" Opacity="0.8"/>
+                    </Rectangle.Effect>
+                </Rectangle>
+            </Canvas>
+
+            <!-- 顶部提示 -->
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#FF9800"
+                    CornerRadius="0,0,12,12"
+                    Padding="24,16"
+                    Margin="0,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#40000000" Direction="270" ShadowDepth="4" BlurRadius="12" Opacity="0.4"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="🎯 自动检测模式"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="16"
+                             FontWeight="SemiBold"
+                             Foreground="White"
+                             HorizontalAlignment="Center"
+                             Margin="0,0,0,8"/>
+                    <TextBlock Text="移动鼠标到目标窗口或UI元素上，系统会自动识别边界"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="12"
+                             Foreground="#FFF3E0"
+                             HorizontalAlignment="Center"
+                             Margin="0,0,0,4"/>
+                    <TextBlock Text="🖱️ 点击鼠标左键确认截图 | 按 退格键 返回 | 按 ESC 取消"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="11"
+                             Foreground="#FFE0B2"
+                             HorizontalAlignment="Center"
+                             FontWeight="Medium"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 检测信息面板 -->
+            <Border HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Background="White"
+                    CornerRadius="12"
+                    Padding="16"
+                    Margin="20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#40000000" Direction="270" ShadowDepth="4" BlurRadius="12" Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="检测信息"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="14"
+                             FontWeight="SemiBold"
+                             Foreground="#FF9800"
+                             Margin="0,0,0,12"/>
+                    <TextBlock Name="DetectionInfoText"
+                             Text="等待检测..."
+                             FontFamily="Consolas"
+                             FontSize="11"
+                             Foreground="#424242"
+                             TextWrapping="Wrap"
+                             LineHeight="18"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 底部操作按钮 - 隐藏，使用键盘快捷键代替 -->
+            <StackPanel HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom"
+                       Orientation="Horizontal"
+                       Margin="0,0,0,40"
+                       Visibility="Collapsed">
+                <Button Name="AutoCaptureButton"
+                        Click="AutoCaptureButton_Click"
+                        Background="#4CAF50"
+                        BorderThickness="0"
+                        Padding="24,12"
+                        Margin="0,0,12,0"
+                        Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="8"
+                                    Padding="{TemplateBinding Padding}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#40000000" Direction="270" ShadowDepth="3" BlurRadius="10" Opacity="0.4"/>
+                                </Border.Effect>
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="Camera" Width="20" Height="20" Foreground="White" Margin="0,0,8,0"/>
+                                    <TextBlock Text="确认截图"
+                                             FontFamily="Microsoft YaHei UI"
+                                             FontSize="14"
+                                             FontWeight="SemiBold"
+                                             Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#43A047"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#388E3C"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Name="BackToModeButton"
+                        Click="BackToModeSelection_Click"
+                        Background="#757575"
+                        BorderThickness="0"
+                        Padding="24,12"
+                        Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="8"
+                                    Padding="{TemplateBinding Padding}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#40000000" Direction="270" ShadowDepth="3" BlurRadius="10" Opacity="0.4"/>
+                                </Border.Effect>
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="ArrowLeft" Width="20" Height="20" Foreground="White" Margin="0,0,8,0"/>
+                                    <TextBlock Text="返回选择"
+                                             FontFamily="Microsoft YaHei UI"
+                                             FontSize="14"
+                                             FontWeight="SemiBold"
+                                             Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#616161"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#424242"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ====================================
+             手动拖拽模式面板
+             ==================================== -->
+        <Grid Name="ManualDragPanel" Visibility="Collapsed">
+            <!-- 选择区域画布 -->
+        <Canvas Name="SelectionCanvas">
+            <!-- 选择矩形 -->
+            <Rectangle Name="SelectionRectangle"
+                       Stroke="#2196F3"
+                       StrokeThickness="2"
+                       Fill="Transparent"
+                       StrokeDashArray="5,3"
+                       Visibility="Collapsed">
+                <Rectangle.Effect>
+                    <DropShadowEffect Color="#2196F3"
+                                    Direction="0"
+                                    ShadowDepth="0"
+                                    BlurRadius="8"
+                                    Opacity="0.6"/>
+                </Rectangle.Effect>
+            </Rectangle>
+
+            <!-- 选择区域信息显示 -->
+            <Border Name="InfoPanel"
+                    Background="#E3F2FD"
+                    CornerRadius="8"
+                    Padding="12,8"
+                    Visibility="Collapsed">
+                <Border.Effect>
+                    <DropShadowEffect Color="#40000000"
+                                    Direction="270"
+                                    ShadowDepth="2"
+                                    BlurRadius="8"
+                                    Opacity="0.3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Name="CoordinateText"
+                             Text="位置: (0, 0)"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="12"
+                             Foreground="#1976D2"
+                             Margin="0,0,0,2"/>
+                    <TextBlock Name="SizeText"
+                             Text="大小: 0 × 0"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="12"
+                             Foreground="#1976D2"/>
+                </StackPanel>
+            </Border>
+        </Canvas>
+
+            <!-- 顶部引导提示 -->
+            <Border HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#2196F3"
+                    CornerRadius="0,0,12,12"
+                    Padding="24,16"
+                    Margin="0,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#40000000"
+                                    Direction="270"
+                                    ShadowDepth="4"
+                                    BlurRadius="12"
+                                    Opacity="0.4"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="📸 手动拖拽模式"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="16"
+                             FontWeight="SemiBold"
+                             Foreground="White"
+                             HorizontalAlignment="Center"
+                             Margin="0,0,0,8"/>
+                    <TextBlock Text="拖拽鼠标选择要识别的区域，松开鼠标完成截图"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="12"
+                             Foreground="#E3F2FD"
+                             HorizontalAlignment="Center"
+                             Margin="0,0,0,4"/>
+                    <TextBlock Text="按 ESC 键取消截图"
+                             FontFamily="Microsoft YaHei UI"
+                             FontSize="11"
+                             Foreground="#BBDEFB"
+                             HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- 底部操作区域 -->
+            <StackPanel HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom"
+                       Margin="0,0,0,0">
+                <!-- 返回按钮 -->
+                <Button Click="BackToModeSelection_Click"
+                        Background="#757575"
+                        BorderThickness="0"
+                        Padding="20,10"
+                        Margin="0,0,0,12"
+                        Cursor="Hand"
+                        HorizontalAlignment="Center">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="8"
+                                    Padding="{TemplateBinding Padding}">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#40000000" Direction="270" ShadowDepth="3" BlurRadius="10" Opacity="0.4"/>
+                                </Border.Effect>
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconMaterial Kind="ArrowLeft" Width="18" Height="18" Foreground="White" Margin="0,0,8,0"/>
+                                    <TextBlock Text="返回模式选择"
+                                             FontFamily="Microsoft YaHei UI"
+                                             FontSize="13"
+                                             FontWeight="SemiBold"
+                                             Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#616161"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#424242"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- 快捷键说明 -->
+                <Border HorizontalAlignment="Center"
+                        Background="#37474F"
+                        CornerRadius="12,12,0,0"
+                        Padding="20,12">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#40000000"
+                                        Direction="90"
+                                        ShadowDepth="4"
+                                        BlurRadius="12"
+                                        Opacity="0.4"/>
+                    </Border.Effect>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Background="#546E7A"
+                                CornerRadius="4"
+                                Padding="8,4"
+                                Margin="0,0,12,0">
+                            <TextBlock Text="ESC"
+                                     FontFamily="Consolas"
+                                     FontSize="11"
+                                     FontWeight="Bold"
+                                     Foreground="White"/>
+                        </Border>
+                        <TextBlock Text="取消截图"
+                                 FontFamily="Microsoft YaHei UI"
+                                 FontSize="12"
+                                 Foreground="#CFD8DC"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,24,0"/>
+
+                        <Border Background="#546E7A"
+                                CornerRadius="4"
+                                Padding="8,4"
+                                Margin="0,0,12,0">
+                            <TextBlock Text="鼠标拖拽"
+                                     FontFamily="Microsoft YaHei UI"
+                                     FontSize="11"
+                                     FontWeight="Bold"
+                                     Foreground="White"/>
+                        </Border>
+                        <TextBlock Text="选择区域"
+                                 FontFamily="Microsoft YaHei UI"
+                                 FontSize="12"
+                                 Foreground="#CFD8DC"
+                                 VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- 右上角关闭按钮 -->
+        <Button HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="20"
+                Background="#F44336"
+                BorderThickness="0"
+                Click="CloseButton_Click"
+                Cursor="Hand">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="20"
+                            Width="40"
+                            Height="40">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#40000000"
+                                            Direction="270"
+                                            ShadowDepth="2"
+                                            BlurRadius="8"
+                                            Opacity="0.3"/>
+                        </Border.Effect>
+                        <TextBlock Text="✕"
+                                 FontSize="16"
+                                 FontWeight="Bold"
+                                 Foreground="White"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#E53935"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#C62828"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+    </Grid>
+</Window>

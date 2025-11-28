@@ -181,7 +181,7 @@ public abstract class NodeBase
     }
 
     /// <summary>
-    /// 查找引脚
+    /// 查找引脚(支持旧格式和新格式)
     /// </summary>
     public virtual PinBase? FindPin(string nodeVersion, int groupIndex, int pinIndex)
     {
@@ -189,6 +189,27 @@ public abstract class NodeBase
 
         PinGroupBase group = PinGroupList[groupIndex];
         return group.GetPin(pinIndex);
+    }
+
+    /// <summary>
+    /// 查找引脚(新方法,基于名称)
+    /// </summary>
+    public virtual PinBase? FindPin(string groupName, string pinType)
+    {
+        // 通过名称查找引脚组
+        var group = PinGroupList.FirstOrDefault(g => g.GetTitle() == groupName);
+        if (group == null)
+        {
+            return null;
+        }
+
+        // 根据类型返回对应引脚
+        return pinType switch
+        {
+            "Input" => group.GetInputPin(),
+            "Output" => group.GetOutputPin(),
+            _ => null
+        };
     }
 
     /// <summary>
@@ -244,7 +265,16 @@ public abstract class NodeBase
     /// <summary>
     /// 加载参数表
     /// </summary>
-    public virtual void LoadParaDict(string version, Dictionary<string, string> paraDict) { }
+    public virtual void LoadParaDict(string version, Dictionary<string, string> paraDict)
+    {
+        // 如果版本不匹配,执行参数迁移
+        if (!string.IsNullOrEmpty(version) && version != Version)
+        {
+            paraDict = MigrateParaDict(version, paraDict);
+        }
+        // 调用实际加载方法
+        LoadParaDictInternal(paraDict);
+    }
 
     /// <summary>
     /// 获取属性表
@@ -254,7 +284,81 @@ public abstract class NodeBase
     /// <summary>
     /// 加载属性
     /// </summary>
-    public virtual void LoadPropertyDict(string version, Dictionary<string, string> propertyDict) { }
+    public virtual void LoadPropertyDict(string version, Dictionary<string, string> propertyDict)
+    {
+        // 如果版本不匹配,执行属性迁移
+        if (!string.IsNullOrEmpty(version) && version != Version)
+        {
+            propertyDict = MigratePropertyDict(version, propertyDict);
+        }
+        // 调用实际加载方法
+        LoadPropertyDictInternal(propertyDict);
+    }
+
+    /// <summary>
+    /// 迁移旧版本参数字典到当前版本
+    /// </summary>
+    /// <param name="fromVersion">源版本号</param>
+    /// <param name="oldDict">旧版本参数字典</param>
+    /// <returns>迁移后的参数字典</returns>
+    protected virtual Dictionary<string, string> MigrateParaDict(string fromVersion, Dictionary<string, string> oldDict)
+    {
+        // 默认不做迁移,子类可重写此方法实现版本升级逻辑
+        return oldDict;
+    }
+
+    /// <summary>
+    /// 比较两个版本号
+    /// </summary>
+    /// <param name="version1">版本1</param>
+    /// <param name="version2">版本2</param>
+    /// <returns>大于0表示version1更新, 等于0表示相同, 小于0表示version2更新</returns>
+    protected int CompareVersion(string version1, string version2)
+    {
+        try
+        {
+            var parts1 = version1.Split('.');
+            var parts2 = version2.Split('.');
+
+            int main1 = int.Parse(parts1[0]);
+            int sub1 = parts1.Length > 1 ? int.Parse(parts1[1]) : 0;
+
+            int main2 = int.Parse(parts2[0]);
+            int sub2 = parts2.Length > 1 ? int.Parse(parts2[1]) : 0;
+
+            if (main1 != main2) return main1.CompareTo(main2);
+            return sub1.CompareTo(sub2);
+        }
+        catch
+        {
+            // 版本格式错误时,认为版本相同
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 迁移旧版本属性字典到当前版本
+    /// </summary>
+    /// <param name="fromVersion">源版本号</param>
+    /// <param name="oldDict">旧版本属性字典</param>
+    /// <returns>迁移后的属性字典</returns>
+    protected virtual Dictionary<string, string> MigratePropertyDict(string fromVersion, Dictionary<string, string> oldDict)
+    {
+        // 默认不做迁移,子类可重写此方法实现版本升级逻辑
+        return oldDict;
+    }
+
+    /// <summary>
+    /// 加载参数字典的实际实现(由子类重写)
+    /// </summary>
+    /// <param name="paraDict">参数字典</param>
+    protected virtual void LoadParaDictInternal(Dictionary<string, string> paraDict) { }
+
+    /// <summary>
+    /// 加载属性字典的实际实现(由子类重写)
+    /// </summary>
+    /// <param name="propertyDict">属性字典</param>
+    protected virtual void LoadPropertyDictInternal(Dictionary<string, string> propertyDict) { }
 
     /// <summary>
     /// 克隆

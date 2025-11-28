@@ -258,17 +258,17 @@ namespace XNode
                 bar.AddTool(GetToolIcon("Play"), "Run", "运行");
                 bar.AddTool(GetToolIcon("Stop"), "Stop", "停止");
                 bar.AddSplit();
-                bar.AddTool(GetToolIcon("Console"), "Console", "控制台");
-                bar.AddTool(GetToolIcon("ClearConsole"), "ClearConsole", "清空控制台");
+                bar.AddTool(GetToolIcon("AddImage"), "AddImage", "添加图片");
+                bar.AddTool(GetToolIcon("Image"), "OpenImageLibrary", "打开图片库");
                 // 监听工具栏
                 bar.ToolClick += ToolBar_ToolClick;
                 // 禁用工具栏
                 // _toolBar.DisableAllTool();
-                _toolBar.EnableTool("Console");
-                _toolBar.EnableTool("ClearConsole");
+                _toolBar.EnableTool("OpenImageLibrary");
                 _toolBar.EnableTool("Undo");
                 _toolBar.EnableTool("Redo");
-               
+                _toolBar.EnableTool("AddImage");
+
                 // 初始化撤销/重做工具状态
                 UpdateUndoRedoTools();
             }
@@ -355,6 +355,26 @@ namespace XNode
 
                     break;
 
+                // 打开图片库
+
+                case "OpenImageLibrary":
+
+                    LogManager.LogInfo("打开图片库");
+
+                    OpenImageLibrary();
+
+                    break;
+
+                // 添加图片
+
+                case "AddImage":
+
+                    LogManager.LogInfo("添加图片");
+
+                    OpenImageEditor();
+
+                    break;
+
                 // 撤销
 
                 case "Undo":
@@ -416,46 +436,6 @@ namespace XNode
                         LogManager.LogInfo("没有可重做的操作");
 
                     }
-
-                    break;
-
-                // 控制台
-
-                case "Console":
-
-                    if (_consoleOpened)
-
-                    {
-
-                        LogManager.LogInfo("关闭系统控制台");
-
-                        OSTool.CloseConsole();
-
-                        _consoleOpened = false;
-
-                    }
-
-                    else
-
-                    {
-
-                        LogManager.LogInfo("打开系统控制台");
-
-                        OSTool.OpenConsole();
-
-                        _consoleOpened = true;
-
-                    }
-
-                    break;
-
-                // 清空控制台
-
-                case "ClearConsole":
-
-                    LogManager.LogInfo("清空系统控制台");
-
-                    Console.Clear();
 
                     break;
 
@@ -835,6 +815,65 @@ namespace XNode
             {
                 LogManager.LogError($"停止节点图执行失败: {ex.Message}");
                 WM.ShowTip($"停止节点图执行失败:\n{ex.Message}", null, TipLevel.Error);
+            }
+        }
+
+        #endregion
+
+        #region 图片编辑器
+
+        /// <summary>
+        /// 打开图片编辑器窗口
+        /// </summary>
+        private void OpenImageEditor()
+        {
+            try
+            {
+                // 打开截图窗口
+                var captureWindow = new Windows.ImageEditor.CaptureWindow(isRecaptureMode: false);
+                var result = captureWindow.ShowDialog();
+
+                if (result == true && captureWindow.CaptureSucceeded)
+                {
+                    LogManager.LogInfo($"截图成功: {captureWindow.CapturedImagePath}");
+                    WM.ShowTip("图片已成功添加");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogError($"打开图片编辑器失败: {ex.Message}");
+                WM.ShowError($"打开图片编辑器失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 打开图片库窗口
+        /// </summary>
+        private void OpenImageLibrary()
+        {
+            try
+            {
+                // 打开新的图片库管理窗口
+                var dialog = new Windows.ImageLibrary.Views.ImageLibraryWindow();
+                var result = dialog.ShowDialog();
+
+                if (result == true && dialog.SelectedImagePaths.Count > 0)
+                {
+                    LogManager.LogInfo($"从图片库选择了 {dialog.SelectedImagePaths.Count} 张图片");
+                    WM.ShowTip($"已选择 {dialog.SelectedImagePaths.Count} 张图片");
+
+                    // 这里可以根据需要处理选中的图片
+                    // 例如：在控制台输出图片路径
+                    foreach (var imagePath in dialog.SelectedImagePaths)
+                    {
+                        LogManager.LogInfo($"  - {imagePath}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogError($"打开图片库失败: {ex.Message}");
+                WM.ShowError($"打开图片库失败: {ex.Message}");
             }
         }
 

@@ -1,0 +1,152 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ========================================
+         DESIGN TOKENS - 设计令牌系统
+         ======================================== -->
+
+    <!-- 颜色系统 - Color System -->
+    
+    <!-- 主色调 - Primary Colors -->
+    <Color x:Key="PrimaryColor">#2196F3</Color>
+    <Color x:Key="PrimaryLightColor">#64B5F6</Color>
+    <Color x:Key="PrimaryDarkColor">#1976D2</Color>
+    
+    <!-- 次要色调 - Secondary Colors -->
+    <Color x:Key="SecondaryColor">#FF9800</Color>
+    <Color x:Key="SecondaryLightColor">#FFB74D</Color>
+    <Color x:Key="SecondaryDarkColor">#F57C00</Color>
+    
+    <!-- 语义化颜色 - Semantic Colors -->
+    <Color x:Key="SuccessColor">#4CAF50</Color>
+    <Color x:Key="WarningColor">#FF9800</Color>
+    <Color x:Key="ErrorColor">#F44336</Color>
+    <Color x:Key="InfoColor">#2196F3</Color>
+    
+    <!-- 中性色 - Neutral Colors -->
+    <Color x:Key="TextPrimaryColor">#212121</Color>
+    <Color x:Key="TextSecondaryColor">#757575</Color>
+    <Color x:Key="TextDisabledColor">#BDBDBD</Color>
+    <Color x:Key="DividerColor">#E0E0E0</Color>
+    
+    <!-- 背景色 - Background Colors -->
+    <Color x:Key="BackgroundColor">#FAFAFA</Color>
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>
+    <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
+    
+    <!-- 暗色主题 - Dark Theme Colors -->
+    <Color x:Key="DarkBackgroundColor">#121212</Color>
+    <Color x:Key="DarkSurfaceColor">#1E1E1E</Color>
+    <Color x:Key="DarkTextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="DarkTextSecondaryColor">#B3B3B3</Color>
+    
+    <!-- 画刷资源 - Brush Resources -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
+    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDarkColor}"/>
+    
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
+    <SolidColorBrush x:Key="SecondaryLightBrush" Color="{StaticResource SecondaryLightColor}"/>
+    <SolidColorBrush x:Key="SecondaryDarkBrush" Color="{StaticResource SecondaryDarkColor}"/>
+    
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
+    
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
+    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="White"/>
+    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}"/>
+    
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
+    <SolidColorBrush x:Key="HoverBrush" Color="#F5F5F5"/>
+
+    <!-- 主题相关画刷 - 这些会被ThemeService动态替换 -->
+    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="ThemeSurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="ThemeTextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="ThemeTextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="ThemeDividerBrush" Color="{StaticResource DividerColor}"/>
+    <SolidColorBrush x:Key="ThemeCardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
+    
+    <!-- 渐变画刷 - Gradient Brushes -->
+    <LinearGradientBrush x:Key="PrimaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource PrimaryColor}" Offset="0"/>
+        <GradientStop Color="{StaticResource PrimaryDarkColor}" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="SecondaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource SecondaryColor}" Offset="0"/>
+        <GradientStop Color="{StaticResource SecondaryDarkColor}" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <!-- 阴影效果 - Shadow Effects -->
+    <DropShadowEffect x:Key="CardShadow" 
+                      Color="#40000000" 
+                      Direction="270" 
+                      ShadowDepth="2" 
+                      BlurRadius="8" 
+                      Opacity="0.3"/>
+    
+    <DropShadowEffect x:Key="ButtonShadow" 
+                      Color="#30000000" 
+                      Direction="270" 
+                      ShadowDepth="1" 
+                      BlurRadius="4" 
+                      Opacity="0.2"/>
+    
+    <DropShadowEffect x:Key="ElevatedShadow" 
+                      Color="#50000000" 
+                      Direction="270" 
+                      ShadowDepth="4" 
+                      BlurRadius="12" 
+                      Opacity="0.4"/>
+    
+    <!-- 字体系统 - Typography System -->
+    <FontFamily x:Key="PrimaryFontFamily">Microsoft YaHei UI, Segoe UI, Arial</FontFamily>
+    <FontFamily x:Key="MonospaceFontFamily">Consolas, Courier New</FontFamily>
+    
+    <!-- 字体大小 - Font Sizes -->
+    <sys:Double x:Key="FontSizeCaption" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
+    <sys:Double x:Key="FontSizeBody" xmlns:sys="clr-namespace:System;assembly=mscorlib">14</sys:Double>
+    <sys:Double x:Key="FontSizeSubtitle" xmlns:sys="clr-namespace:System;assembly=mscorlib">16</sys:Double>
+    <sys:Double x:Key="FontSizeTitle" xmlns:sys="clr-namespace:System;assembly=mscorlib">20</sys:Double>
+    <sys:Double x:Key="FontSizeHeadline" xmlns:sys="clr-namespace:System;assembly=mscorlib">24</sys:Double>
+    <sys:Double x:Key="FontSizeDisplay" xmlns:sys="clr-namespace:System;assembly=mscorlib">32</sys:Double>
+    
+    <!-- 间距系统 - Spacing System -->
+    <Thickness x:Key="SpacingXS">4</Thickness>
+    <Thickness x:Key="SpacingSM">8</Thickness>
+    <Thickness x:Key="SpacingMD">16</Thickness>
+    <Thickness x:Key="SpacingLG">24</Thickness>
+    <Thickness x:Key="SpacingXL">32</Thickness>
+    <Thickness x:Key="SpacingXXL">48</Thickness>
+    
+    <!-- 圆角系统 - Border Radius System -->
+    <CornerRadius x:Key="RadiusXS">2</CornerRadius>
+    <CornerRadius x:Key="RadiusSM">4</CornerRadius>
+    <CornerRadius x:Key="RadiusMD">8</CornerRadius>
+    <CornerRadius x:Key="RadiusLG">12</CornerRadius>
+    <CornerRadius x:Key="RadiusXL">16</CornerRadius>
+    <CornerRadius x:Key="RadiusRound">50</CornerRadius>
+    
+    <!-- 边框系统 - Border System -->
+    <Thickness x:Key="BorderThin">1</Thickness>
+    <Thickness x:Key="BorderMedium">2</Thickness>
+    <Thickness x:Key="BorderThick">3</Thickness>
+    
+    <!-- 动画持续时间 - Animation Durations -->
+    <Duration x:Key="AnimationFast">0:0:0.15</Duration>
+    <Duration x:Key="AnimationNormal">0:0:0.3</Duration>
+    <Duration x:Key="AnimationSlow">0:0:0.5</Duration>
+    
+    <!-- 缓动函数 - Easing Functions -->
+    <CubicEase x:Key="EaseInOut" EasingMode="EaseInOut"/>
+    <QuadraticEase x:Key="EaseOut" EasingMode="EaseOut"/>
+    <BackEase x:Key="EaseBack" EasingMode="EaseOut" Amplitude="0.3"/>
+
+</ResourceDictionary>

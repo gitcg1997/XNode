@@ -84,7 +84,7 @@ namespace XNode.SubSystem.NodeLibSystem.Define.Basics
         /// <summary>
         /// 加载参数表
         /// </summary>
-        public override void LoadParaDict(string version, Dictionary<string, string> paraDict)
+        protected override void LoadParaDictInternal(Dictionary<string, string> paraDict)
         {
             // 结束节点没有参数需要加载
         }

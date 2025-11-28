@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-XNode 是一个基于 WPF 的可视化节点编辑器框架,使用 .NET 8 开发。用户可以通过拖拽节点、连接引脚的方式创建可视化工作流程或程序逻辑。
+XNode 是一个基于 WPF 的可视化节点编辑器框架,使用 .NET 9 开发。用户可以通过拖拽节点、连接引脚的方式创建可视化工作流程或程序逻辑。
 
-**当前版本**: 1.0.3 Alpha
+**当前版本**: 1.0.4 Alpha (升级至 .NET 9 + MVVM 渐进式改造)
 
 ## 构建和运行
 
@@ -20,6 +20,11 @@ dotnet build XNode.sln
 dotnet build XNode.sln --configuration Release
 ```
 
+### 清理构建输出
+```bash
+dotnet clean XNode.sln
+```
+
 ### 运行主应用程序
 ```bash
 dotnet run --project XNode/XNode.csproj
@@ -27,8 +32,17 @@ dotnet run --project XNode/XNode.csproj
 
 ### 运行已编译的程序
 ```bash
-cd XNode/bin/Release/net8.0-windows
+cd XNode/bin/Release/net9.0-windows
 ./XNode.exe
+```
+
+### 构建特定的节点库项目
+```bash
+# 构建文件节点库
+dotnet build NodeLib.File/NodeLib.File.csproj -c Release
+
+# 构建自动化节点库
+dotnet build NodeLib.Automation/NodeLib.Automation.csproj -c Release
 ```
 
 ## 项目架构
@@ -75,7 +89,11 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
     - `CardComponent`: 卡片渲染组件
     - `DrawingComponent`: 绘图组件
   - `Layer`: 分层渲染系统(网格层、连接线层、悬停框层、选择框层)
-  - `Control`: UI 控件(节点视图、引脚组视图、属性面板)
+  - `Control`: UI 控件
+    - `NodeView`: 节点视图
+    - `PinGroupView`: 引脚组视图
+    - `PropertyPanel`: 属性面板
+    - `AlignToolBar`: 对齐工具栏,提供节点对齐功能
 - **NodeLibSystem**: 节点库系统,管理内置和外部节点库
   - `NodeLibManager`: 节点库加载和管理
   - `Define`: 内置节点定义
@@ -110,6 +128,7 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
     - `Point`: 节点在画布上的坐标
     - `Color`: 节点颜色
     - `State`: 节点状态 (启用/禁用)
+    - `Version`: 节点版本号 (用于版本迁移)
   - 引脚和属性:
     - `PinGroupList`: 引脚组列表,在节点上显示
     - `PropertyList`: 属性列表,在属性面板中编辑
@@ -119,6 +138,10 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
     - `ExecuteNode()`: 执行节点逻辑,核心业务方法
     - `Unload()`: 卸载节点,清理资源
     - `Clear()`: 清空节点状态
+  - 版本迁移方法:
+    - `MigrateParaDict(string fromVersion, Dictionary<string, string> oldDict)`: 参数字典版本迁移
+    - `LoadParaDictInternal(Dictionary<string, string> paraDict)`: 内部加载参数字典
+    - `CompareVersion(string version1, string version2)`: 比较版本号
   - 进度报告:
     - `OpenProgressBar(IProgressGetter)`: 显示进度条
     - `CloseProgressBar()`: 关闭进度条
@@ -126,29 +149,44 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
 - `PinBase`: 引脚基类,表示节点的数据输入/输出端口
 - `NodeProperty`: 节点属性,用于在属性面板中显示和编辑配置
 - `INodeLib`: 节点库接口,外部节点库必须实现
+  - `Name`: 库名称,用于标识库
+  - `Title`: 库标题,用于显示
+  - `LibHarddisk`: 库磁盘(虚拟文件系统)
   - `Init()`: 初始化库
   - `CreateNode(string typeString)`: 工厂方法,根据类型字符串创建节点实例
   - `Clear()`: 清理库资源
 
 **命令系统 (XNode/Command/)**
-- `CommandManager`: 撤销/重做管理器,使用双栈实现
+- `CommandManager`: 撤销/重做管理器,使用链表实现
   - `ExecuteCommand(ICommand)`: 执行命令并记录到历史
   - `Undo()`: 撤销上一个命令
   - `Redo()`: 重做上一个撤销的命令
   - `CanUndo` / `CanRedo`: 判断是否可以撤销/重做
   - `CommandStatusChanged`: 命令状态变化事件
+  - `RegisterInterceptor(ICommandInterceptor)`: 注册命令拦截器
+  - `UnregisterInterceptor(ICommandInterceptor)`: 移除命令拦截器
   - 最大历史记录: 50 条
 - `ICommand`: 命令接口,所有可撤销操作必须实现
   - `Execute()`: 执行命令
   - `Undo()`: 撤销命令
   - `Redo()`: 重做命令
   - `Description`: 命令描述
+- `IMergeable`: 可合并命令接口,支持连续操作合并
+  - `CanMergeWith(ICommand other)`: 判断是否可以合并
+  - `MergeWith(ICommand other)`: 合并命令
+- `ICommandInterceptor`: 命令拦截器接口,用于命令执行前后的处理
+  - `OnBeforeExecute(ICommand)`: 执行前拦截
+  - `OnAfterExecute(ICommand)`: 执行后拦截
 - 内置命令实现:
   - `AddNodeCommand`: 添加节点
   - `DeleteNodeCommand`: 删除节点
-  - `MoveNodeCommand`: 移动节点
+  - `MoveNodeCommand`: 移动节点 (支持合并连续移动)
   - `ConnectPinCommand`: 连接引脚
   - `DisconnectPinCommand`: 断开引脚连接
+  - `AlignNodesCommand`: 对齐多个节点 (左对齐、居中对齐、右对齐、上对齐、下对齐)
+  - `CompositeCommand`: 组合命令,支持多个命令作为一个单元执行
+- 内置拦截器:
+  - `AddNodePositionInterceptor`: 添加节点时自动确认位置
 
 **核心编辑器**
 - `CoreEditer`: 核心编辑器控件,包含节点编辑面板和节点库面板
@@ -157,7 +195,14 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
   - 负责初始化所有子系统
   - 管理工具栏和快捷键
   - 提供日志系统 `LogManager`
-  - 快捷键: Ctrl+Z(撤销), Ctrl+Y(重做)
+  - 快捷键:
+    - Ctrl+Z: 撤销
+    - Ctrl+Y: 重做
+  - 工具栏功能:
+    - 文件操作: 新建、打开、保存、另存为
+    - 节点对齐: 通过 `AlignToolBar` 提供左、右、居中、上、下对齐
+    - 控制台切换: 显示/隐藏系统控制台
+    - 日志切换: 显示/隐藏日志输出面板
 
 ### 初始化顺序
 
@@ -199,6 +244,32 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
    - `INodeLib` 接口允许第三方节点库
    - 运行时动态加载外部 DLL
 
+## 引脚路径系统
+
+引脚路径用于在序列化时标识引脚连接关系,格式为 `组名称/引脚名称`。
+
+**重要**: 自 1.0.3 版本起,引脚路径**基于名称**而非索引,这提高了代码重构的安全性。
+
+**实现类**: `XNode/SubSystem/NodeEditSystem/Define/PinPath.cs`
+
+**格式**:
+- 输入引脚路径: `"输入组名/引脚名"`
+- 输出引脚路径: `"输出组名/引脚名"`
+
+**示例**:
+```csharp
+// 获取引脚路径
+string path = pin.GetPath();  // 返回 "参数/延迟时间"
+
+// 解析引脚路径
+var (groupName, pinName) = PinPath.Parse(path);
+```
+
+**最佳实践**:
+- 引脚组和引脚的名称应保持稳定,避免频繁更改
+- 如需重命名,应实现版本迁移逻辑
+- 确保同一节点内引脚名称唯一
+
 ## 开发节点
 
 ### 创建新的内置节点
@@ -229,9 +300,9 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
 
 **步骤**:
 
-1. 创建新的类库项目,目标框架为 `net8.0`
+1. 创建新的类库项目,目标框架为 `net8.0-windows`
    ```bash
-   dotnet new classlib -n MyNodeLib -f net8.0
+   dotnet new classlib -n MyNodeLib -f net8.0-windows
    ```
 
 2. 添加对 `XLib.Node` 项目的引用
@@ -241,14 +312,21 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
 
 3. 创建库类,实现 `INodeLib` 接口:
    ```csharp
+   using XLib.Node;
+   using XLib.Base.VirtualDisk;
+
    public class MyNodeLib : INodeLib
    {
+       public string Name { get; set; } = "MyNodeLib";
+       public string Title { get; set; } = "我的节点库";
+       public Harddisk LibHarddisk { get; set; } = new Harddisk();
+
        public void Init()
        {
            // 初始化库,可以留空
        }
 
-       public NodeBase CreateNode(string typeString)
+       public NodeBase? CreateNode(string typeString)
        {
            // 根据类型字符串创建对应的节点实例
            return typeString switch
@@ -273,12 +351,25 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
        {
            Title = "我的节点";
            Icon = "Node";
+           Version = "1.0";
            // 添加引脚组和属性
        }
 
        public override void ExecuteNode()
        {
            // 实现节点逻辑
+       }
+
+       // 可选: 实现版本迁移
+       protected override Dictionary<string, string> MigrateParaDict(
+           string fromVersion,
+           Dictionary<string, string> oldDict)
+       {
+           if (CompareVersion(fromVersion, "1.0") < 0)
+           {
+               // 从旧版本迁移参数
+           }
+           return base.MigrateParaDict(fromVersion, oldDict);
        }
    }
    ```
@@ -290,24 +381,77 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
 
 6. 将生成的 DLL 放入用户文档目录
    - 目标路径: `%USERPROFILE%\Documents\XNode\NodeLib\`
-   - 复制: `MyNodeLib.dll`
+   - 复制: `MyNodeLib.dll` 及其依赖
 
 7. 重启 XNode,应用程序会自动加载外部节点库
 
-**参考示例**: `NodeLib.File` 项目是一个完整的外部节点库实现,包含文件 MD5 计算等节点。
+**参考示例**:
+- `NodeLib.File`: 文件操作节点库,包含文件 MD5 计算、文件重命名等节点
+- `NodeLib.Automation`: 自动化节点库,包含鼠标点击、键盘输入、图像识别等节点
 
 ## 已知问题和解决方案
 
-### 循环依赖问题
+### 循环依赖问题 (已解决)
 - **问题**: XLib.Base 项目最初包含了对 XLib.Node 的引用,导致循环依赖
 - **解决方案**: 将 Command 相关文件从 XLib.Base 移至 XNode 项目
 - **注意**: 保持依赖层次清晰,XLib.Base 是基础层,不应依赖其他项目
 
-### 初始化顺序问题
+### 初始化顺序问题 (已解决)
 - **问题**: MainWindow 中工具栏初始化在核心编辑器初始化之前,导致"核心编辑器为空"错误
 - **解决方案**: 调整初始化顺序,确保核心编辑器先于工具栏初始化
-- **代码位置**: MainWindow.xaml.cs:72-74
+- **代码位置**: MainWindow.xaml.cs:77-80
 - **错误表现**: 运行时异常,访问 `Editer.CommandManager` 时抛出异常
+
+## 节点版本迁移系统
+
+项目在 1.0.3 Alpha 版本中引入了完整的节点版本迁移系统,详见 `VERSION_MIGRATION_GUIDE.md`。
+
+**核心机制**:
+- 每个节点都有 `Version` 属性 (默认 "1.0")
+- 保存项目时记录每个节点的版本号
+- 加载项目时自动检测版本差异并执行迁移
+- 通过重写 `MigrateParaDict()` 方法实现参数迁移逻辑
+
+**版本号规则**:
+- 格式: `major.minor` (如 "1.0", "2.5")
+- 使用 `CompareVersion()` 比较版本大小
+- 向后兼容: 新版本节点可以加载旧版本数据
+
+**示例**:
+```csharp
+protected override Dictionary<string, string> MigrateParaDict(
+    string fromVersion,
+    Dictionary<string, string> oldDict)
+{
+    // 从 1.0 迁移到 1.1
+    if (CompareVersion(fromVersion, "1.1") < 0)
+    {
+        // 重命名参数
+        if (oldDict.TryGetValue("OldParamName", out var value))
+        {
+            oldDict["NewParamName"] = value;
+            oldDict.Remove("OldParamName");
+        }
+    }
+
+    return base.MigrateParaDict(fromVersion, oldDict);
+}
+```
+
+## 项目重构历史
+
+本项目经历了完整的四阶段重构 (2025-11-21),详见 `COMPLETE_REFACTORING_REPORT.md`:
+
+1. **第一阶段**: 版本迁移系统 + 错误处理增强
+2. **第二阶段**: 序列化优化 + 引脚路径增强 (基于名称而非索引)
+3. **第三阶段**: 用户体验改进 + 文档完善
+4. **第四阶段**: 外部节点库迁移修复
+
+**关键改进**:
+- 引脚路径从基于索引改为基于名称,提高重构安全性
+- 完整的错误日志和分类处理
+- 16 个内置节点增加参数验证
+- 向后兼容性保持 100%
 
 ### 调试和日志
 
@@ -326,9 +470,74 @@ XNode 主应用程序采用子系统架构设计。各子系统通过 Manager �
 ## 技术栈
 
 - **语言**: C#
-- **框架**: .NET 8, WPF (Windows Presentation Foundation)
+- **框架**: .NET 9 (net9.0-windows), WPF (Windows Presentation Foundation)
+- **MVVM**: CommunityToolkit.Mvvm 8.4.0
 - **依赖**: Newtonsoft.Json 13.0.3
-- **平台**: Windows (net8.0-windows)
+- **平台**: Windows
+
+## MVVM 架构 (渐进式改造中)
+
+项目正在进行渐进式 MVVM 改造,采用混合架构模式。
+
+### 目录结构
+
+```
+XNode/
+├── ViewModels/           # ViewModel 层
+│   ├── ViewModelBase.cs      # ViewModel 基类
+│   ├── MainWindowViewModel.cs # 主窗口 ViewModel
+│   └── EditorState.cs        # 编辑器全局状态
+├── Services/             # 服务层
+│   ├── IProjectService.cs    # 项目服务接口
+│   ├── ProjectService.cs     # 项目服务实现
+│   └── ServiceLocator.cs     # 服务定位器
+└── SubSystem/            # 现有子系统 (逐步迁移)
+```
+
+### MVVM 使用指南
+
+**1. 创建新的 ViewModel:**
+```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+public partial class MyViewModel : ViewModelBase
+{
+    [ObservableProperty]
+    private string _title = "";
+
+    [RelayCommand]
+    private void DoSomething()
+    {
+        // 命令逻辑
+    }
+}
+```
+
+**2. 使用 EditorState 访问全局状态:**
+```csharp
+// 更新命令状态
+EditorState.Instance.UpdateCommandState(canUndo, canRedo, undoDesc, redoDesc);
+
+// 订阅状态变化
+EditorState.Instance.PropertyChanged += (s, e) => {
+    if (e.PropertyName == nameof(EditorState.CanUndo)) { ... }
+};
+```
+
+**3. 使用服务:**
+```csharp
+// 获取项目服务
+var projectService = ServiceLocator.GetService<IProjectService>();
+projectService.SaveProject();
+```
+
+### 迁移原则
+
+1. **新功能**: 所有新窗口/对话框必须使用 MVVM
+2. **渐进式**: 修改现有代码时,逐步引入数据绑定
+3. **Hybrid 模式**: 复杂的 Canvas 绑定可保留 Code-Behind
+4. **服务化**: Manager 单例逐步改造为可注入的服务
 
 ## 命名约定
 

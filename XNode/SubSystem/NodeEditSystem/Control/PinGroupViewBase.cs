@@ -1,6 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using WpfUserControl = System.Windows.Controls.UserControl;
+using WpfPoint = System.Windows.Point;
 using XLib.Node;
 
 namespace XNode.SubSystem.NodeEditSystem.Control
@@ -8,7 +10,7 @@ namespace XNode.SubSystem.NodeEditSystem.Control
     /// <summary>
     /// 引脚组视图基类
     /// </summary>
-    public class PinGroupViewBase : UserControl
+    public class PinGroupViewBase : WpfUserControl
     {
         /// <summary>悬停引脚</summary>
         public PinBase? HoveredPin { get; set; } = null;
@@ -26,10 +28,10 @@ namespace XNode.SubSystem.NodeEditSystem.Control
         /// <summary>
         /// 获取悬停引脚相对于鼠标的偏移量
         /// </summary>
-        public Point GetHoveredPinOffset()
+        public WpfPoint GetHoveredPinOffset()
         {
             Grid pinArea = GetPinArea();
-            Point offset = Mouse.GetPosition(pinArea);
+            WpfPoint offset = Mouse.GetPosition(pinArea);
             if (HoveredPin.Flow == PinFlow.Input)
             {
                 offset.X = 3 - offset.X;
@@ -46,7 +48,7 @@ namespace XNode.SubSystem.NodeEditSystem.Control
         /// <summary>
         /// 获取相对于节点的坐标
         /// </summary>
-        public virtual Point GetPinOffset(NodeView card, int pinIndex) => new Point();
+        public virtual WpfPoint GetPinOffset(NodeView card, int pinIndex) => new WpfPoint();
 
         /// <summary>
         /// 更新引脚图标

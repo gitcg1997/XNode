@@ -1,4 +1,5 @@
 ﻿using XLib.Drawing;
+using DrawingBitmap = XLib.Drawing.Bitmap;
 
 namespace XNode.SubSystem.ResourceSystem
 {
@@ -52,12 +53,12 @@ namespace XNode.SubSystem.ResourceSystem
         /// <summary>
         /// 绘制执行引脚图标
         /// </summary>
-        private static Bitmap DrawExecutePinIcon(byte r, byte g, byte b)
+        private static DrawingBitmap DrawExecutePinIcon(byte r, byte g, byte b)
         {
             Pixel pixel = new Pixel(r, g, b);
             Pixel alphaPixel = new Pixel(r, g, b, 51);
 
-            Bitmap bitmap = new Bitmap(11, 11);
+            DrawingBitmap bitmap = new DrawingBitmap(11, 11);
 
             // 上边、下边、左边
             bitmap.DrawHorizontalLine(0, 0, 6, pixel);
@@ -84,12 +85,12 @@ namespace XNode.SubSystem.ResourceSystem
         /// <summary>
         /// 绘制实心执行引脚图标
         /// </summary>
-        private static Bitmap DrawSolidExecutePinIcon(byte r, byte g, byte b)
+        private static DrawingBitmap DrawSolidExecutePinIcon(byte r, byte g, byte b)
         {
             Pixel pixel = new Pixel(r, g, b);
             Pixel alphaPixel = new Pixel(r, g, b, 51);
 
-            Bitmap bitmap = new Bitmap(11, 11);
+            DrawingBitmap bitmap = new DrawingBitmap(11, 11);
 
             bitmap.DrawHorizontalLine(0, 0, 6, pixel);
             bitmap.DrawHorizontalLine(0, 1, 7, pixel);
@@ -112,12 +113,12 @@ namespace XNode.SubSystem.ResourceSystem
         /// <summary>
         /// 绘制数据引脚图标
         /// </summary>
-        private static Bitmap DrawDataPinIcon(byte r, byte g, byte b)
+        private static DrawingBitmap DrawDataPinIcon(byte r, byte g, byte b)
         {
             Pixel pixel = new Pixel(r, g, b);
             Pixel alphaPixel = new Pixel(r, g, b, 51);
 
-            Bitmap bitmap = new Bitmap(11, 11);
+            DrawingBitmap bitmap = new DrawingBitmap(11, 11);
 
             bitmap.DrawSlash(5, 0, 1, 1, 6, pixel);
             bitmap.DrawSlash(9, 6, -1, 1, 5, pixel);
@@ -150,12 +151,12 @@ namespace XNode.SubSystem.ResourceSystem
         /// <summary>
         /// 绘制实心数据引脚图标
         /// </summary>
-        private static Bitmap DrawSolidDataPinIcon(byte r, byte g, byte b)
+        private static DrawingBitmap DrawSolidDataPinIcon(byte r, byte g, byte b)
         {
             Pixel pixel = new Pixel(r, g, b);
             Pixel alphaPixel = new Pixel(r, g, b, 51);
 
-            Bitmap bitmap = new Bitmap(11, 11);
+            DrawingBitmap bitmap = new DrawingBitmap(11, 11);
 
             bitmap.DrawHorizontalLine(5, 0, 1, pixel);
             bitmap.DrawHorizontalLine(4, 1, 3, pixel);

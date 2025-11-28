@@ -1,4 +1,5 @@
 ﻿using System.Windows.Input;
+using WpfCursor = System.Windows.Input.Cursor;
 using XLib.WPF;
 using XLib.WPF.Behavior;
 using XNode.SubSystem.NodeEditSystem.Panel.Component;
@@ -10,7 +11,7 @@ namespace XNode.SubSystem.NodeEditSystem.Panel
         public SelectTool(InteractionComponent host) : base(host) { }
 
         /// <summary>光标</summary>
-        public Cursor Cursor { get; set; }
+        public WpfCursor Cursor { get; set; }
 
         public override void Init()
         {

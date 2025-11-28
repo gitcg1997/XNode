@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using WpfPoint = System.Windows.Point;
 
 namespace XNode.SubSystem.NodeEditSystem.Define
 {
@@ -7,8 +8,8 @@ namespace XNode.SubSystem.NodeEditSystem.Define
     /// </summary>
     public class ConnectLine
     {
-        public Point Start { get; set; }
+        public WpfPoint Start { get; set; }
 
-        public Point End { get; set; }
+        public WpfPoint End { get; set; }
     }
 }

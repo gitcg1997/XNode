@@ -1,0 +1,37 @@
+﻿<UserControl x:Class="XNode.SubSystem.NodeEditSystem.Control.AlignToolBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:XNode.SubSystem.NodeEditSystem.Control"
+             mc:Ignorable="d">
+    <Grid Background="#101010">
+        <StackPanel x:Name="Stack_ToolBar" Orientation="Horizontal" Margin="1">
+            <Button x:Name="Tool_AlignLeft" Style="{StaticResource HoverToolButton}" ToolTip="左对齐" Height="27" Width="27" Margin="0,0,0,0">
+                <Button.Content>
+                    <Image Source="/Assets/Icon16/AlignLeft.png" Height="15" Width="15"/>
+                </Button.Content>
+            </Button>
+            <Button x:Name="Tool_AlignCenter" Style="{StaticResource HoverToolButton}" ToolTip="居中对齐" Height="27" Width="27" Margin="1,0,0,0">
+                <Button.Content>
+                    <Image Source="/Assets/Icon16/AlignCenter.png" Height="15" Width="15"/>
+                </Button.Content>
+            </Button>
+            <Button x:Name="Tool_AlignRight" Style="{StaticResource HoverToolButton}" ToolTip="右对齐" Height="27" Width="27" Margin="1,0,0,0">
+                <Button.Content>
+                    <Image Source="/Assets/Icon16/AlignRight.png" Height="15" Width="15"/>
+                </Button.Content>
+            </Button>
+            <Button x:Name="Tool_AlignTop" Style="{StaticResource HoverToolButton}" ToolTip="上对齐" Height="27" Width="27" Margin="1,0,0,0">
+                <Button.Content>
+                    <Image Source="/Assets/Icon16/AlignTop.png" Height="15" Width="15"/>
+                </Button.Content>
+            </Button>
+            <Button x:Name="Tool_AlignBottom" Style="{StaticResource HoverToolButton}" ToolTip="下对齐" Height="27" Width="27" Margin="1,0,0,0">
+                <Button.Content>
+                    <Image Source="/Assets/Icon16/AlignBottom.png" Height="15" Width="15"/>
+                </Button.Content>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

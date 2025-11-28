@@ -1,5 +1,6 @@
 ﻿using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WpfColor = System.Windows.Media.Color;
 using XNode.SubSystem.NodeEditSystem.Define;
 
 namespace XNode.SubSystem.ResourceSystem
@@ -83,7 +84,7 @@ namespace XNode.SubSystem.ResourceSystem
         /// <summary>
         /// 生成数据引脚图标
         /// </summary>
-        private void GenerateDataPinIcon(string key, Color color, PinStyle style = PinStyle.Hollow)
+        private void GenerateDataPinIcon(string key, WpfColor color, PinStyle style = PinStyle.Hollow)
         {
             byte[] iconData = PinIconTool.CreatePinIcon(PinType.Data, color.R, color.G, color.B, style);
             _dataPinIconDict.Add(key, CreateSource(11, iconData));

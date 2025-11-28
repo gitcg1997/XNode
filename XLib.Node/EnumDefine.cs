@@ -24,6 +24,10 @@ public enum PinGroupType
     Action,
     /// <summary>控件引脚组</summary>
     Control,
+    /// <summary>图像路径引脚组</summary>
+    ImagePath,
+    /// <summary>下拉选择框引脚组</summary>
+    ComboBox,
 }
 
 /// <summary>

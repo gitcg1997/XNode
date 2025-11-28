@@ -1,0 +1,50 @@
+<Project>
+  <PropertyGroup>
+    <Copyright>Copyright © 2022</Copyright>
+    <Company>Mulholland Software/James Willock</Company>
+
+    <LangVersion>12.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\build\key.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+
+    <Nullable>enable</Nullable>
+
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    
+    <!-- Common Package Properties -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Authors>James Willock</Authors>
+    <Owners>James Willock</Owners>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit</PackageProjectUrl>
+    <PackageIcon>MaterialDesign.Icon.png</PackageIcon>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit/releases</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.IO" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Text" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="System.Windows" />
+    <Using Include="System.Windows.Controls" />
+    <Using Include="System.Windows.Controls.Primitives" />
+    <Using Include="System.Windows.Input" />
+    <Using Include="System.Windows.Markup" />
+  </ItemGroup>
+
+  <!-- Common Package Content -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)build\MaterialDesign.Icon.png" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

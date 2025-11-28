@@ -1,6 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
+using WpfPoint = System.Windows.Point;
 using XLib.Node;
 using XNode.SubSystem.ResourceSystem;
 
@@ -29,17 +31,17 @@ namespace XNode.SubSystem.NodeEditSystem.Control
             throw new Exception("无命中引脚");
         }
 
-        private void PinArea_MouseEnter(object sender, MouseEventArgs e)
+        private void PinArea_MouseEnter(object sender, WpfMouseEventArgs e)
         {
             HoveredPin = Instance.OutputPin;
         }
 
-        private void PinArea_MouseLeave(object sender, MouseEventArgs e)
+        private void PinArea_MouseLeave(object sender, WpfMouseEventArgs e)
         {
             HoveredPin = null;
         }
 
-        public override Point GetPinOffset(NodeView card, int pinIndex) => PinArea.TranslatePoint(new Point(14, 8), card);
+        public override WpfPoint GetPinOffset(NodeView card, int pinIndex) => PinArea.TranslatePoint(new WpfPoint(14, 8), card);
 
         public override void UpdatePinIcon()
         {

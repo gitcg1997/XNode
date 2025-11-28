@@ -6,7 +6,7 @@
     public class NodeData
     {
         /// <summary>基本数据</summary>
-        public string BaseData { get; set; } = "";
+        public NodeBaseData? BaseData { get; set; } = null;
 
         /// <summary>参数表</summary>
         public Dictionary<string, string> ParaDict { get; set; } = new Dictionary<string, string>();

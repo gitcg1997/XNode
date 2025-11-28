@@ -1,5 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using WpfPoint = System.Windows.Point;
+using WpfColor = System.Windows.Media.Color;
+using WpfPen = System.Windows.Media.Pen;
 using XLib.Node;
 using XLib.WPF.Drawing;
 
@@ -13,11 +16,11 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
 
         public PinBase EndPin { get; set; }
 
-        public Point Start { get; set; }
+        public WpfPoint Start { get; set; }
 
-        public Point End { get; set; }
+        public WpfPoint End { get; set; }
 
-        public Color Color { get; set; } = Colors.White;
+        public WpfColor Color { get; set; } = Colors.White;
 
         public bool IsData { get; set; } = false;
 
@@ -39,18 +42,18 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
             geometry.Figures.Add(figure);
 
             // 计算贝塞尔曲线的控制点与终点
-            Point p1 = new Point(_left + controlLineLength, _top);
-            Point p2 = new Point(_right - controlLineLength, _bottom);
-            Point endPoint = new Point(_right, _bottom);
+            WpfPoint p1 = new WpfPoint(_left + controlLineLength, _top);
+            WpfPoint p2 = new WpfPoint(_right - controlLineLength, _bottom);
+            WpfPoint endPoint = new WpfPoint(_right, _bottom);
 
             // 设置起点并添加贝塞尔曲线
-            figure.StartPoint = new Point(_left, _top);
+            figure.StartPoint = new WpfPoint(_left, _top);
             figure.Segments.Add(new BezierSegment(p1, p2, endPoint, true));
 
-            Pen pen = new Pen(new SolidColorBrush(Color), 1);
+            WpfPen pen = new WpfPen(new SolidColorBrush(Color), 1);
             // 绘制形状
             if (!IsData) context.DrawGeometry(null, _penExecute, geometry);
-            else context.DrawGeometry(null, new Pen(new SolidColorBrush(Color), 1), geometry);
+            else context.DrawGeometry(null, new WpfPen(new SolidColorBrush(Color), 1), geometry);
         }
 
         public override string ToString() => $"{Start}-{End}";
@@ -64,6 +67,6 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
         private readonly int _minLength = 40;
 
         /// <summary>执行引脚线</summary>
-        private readonly Pen _penExecute = new Pen(new SolidColorBrush(Color.FromArgb(255, 196, 126, 255)), 1);
+        private readonly WpfPen _penExecute = new WpfPen(new SolidColorBrush(Color.FromArgb(255, 196, 126, 255)), 1);
     }
 }

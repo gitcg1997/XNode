@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -40,14 +40,19 @@
     <None Remove="Assets\Icon15\NodePreset.png" />
     <None Remove="Assets\Icon15\Remove.png" />
     <None Remove="Assets\Icon15\Rename.png" />
+    <None Remove="Assets\Icon16\AddImage.png" />
+    <None Remove="Assets\Icon16\AddDatabase.png" />
+    <None Remove="Assets\Icon16\AlignBottom.png" />
     <None Remove="Assets\Icon16\AlignCenter.png" />
     <None Remove="Assets\Icon16\AlignLeft.png" />
     <None Remove="Assets\Icon16\AlignRight.png" />
+    <None Remove="Assets\Icon16\AlignTop.png" />
     <None Remove="Assets\Icon16\ClearConsole.png" />
     <None Remove="Assets\Icon16\CloseFile.png" />
     <None Remove="Assets\Icon16\Console.png" />
     <None Remove="Assets\Icon16\ExpandAll.png" />
     <None Remove="Assets\Icon16\FurlAll.png" />
+    <None Remove="Assets\Icon16\Image.png" />
     <None Remove="Assets\Icon16\LinkedFolderOpened.png" />
     <None Remove="Assets\Icon16\NewFile.png" />
     <None Remove="Assets\Icon16\NewFolder.png" />
@@ -105,7 +110,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks" Version="6.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.11.0.20250507" />
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.11.0.20250507" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
   </ItemGroup>
 
   <ItemGroup>
@@ -140,14 +157,19 @@
     <Resource Include="Assets\Icon15\NodePreset.png" />
     <Resource Include="Assets\Icon15\Remove.png" />
     <Resource Include="Assets\Icon15\Rename.png" />
+    <Resource Include="Assets\Icon16\AddImage.png" />
+    <Resource Include="Assets\Icon16\AddDatabase.png" />
+    <Resource Include="Assets\Icon16\AlignBottom.png" />
     <Resource Include="Assets\Icon16\AlignCenter.png" />
     <Resource Include="Assets\Icon16\AlignLeft.png" />
     <Resource Include="Assets\Icon16\AlignRight.png" />
+    <Resource Include="Assets\Icon16\AlignTop.png" />
     <Resource Include="Assets\Icon16\ClearConsole.png" />
     <Resource Include="Assets\Icon16\CloseFile.png" />
     <Resource Include="Assets\Icon16\Console.png" />
     <Resource Include="Assets\Icon16\ExpandAll.png" />
     <Resource Include="Assets\Icon16\FurlAll.png" />
+    <Resource Include="Assets\Icon16\Image.png" />
     <Resource Include="Assets\Icon16\NewFile.png" />
     <Resource Include="Assets\Icon16\LinkedFolderOpened.png" />
     <Resource Include="Assets\Icon16\NewFolder.png" />
@@ -191,6 +213,12 @@
     <Resource Include="SubSystem\WindowSystem\Image\Error.png" />
     <Resource Include="SubSystem\WindowSystem\Image\Info.png" />
     <Resource Include="SubSystem\WindowSystem\Image\Warning.png" />
+    <Resource Include="Windows\ImageEditor\Styles\AppStyles.xaml" />
+    <Resource Include="Windows\ImageEditor\Styles\ButtonStyles.xaml" />
+    <Resource Include="Windows\ImageEditor\Styles\DesignTokens.xaml" />
+    <Resource Include="Windows\ImageEditor\Styles\CardStyles.xaml" />
+    <Resource Include="Windows\ImageEditor\Styles\TextStyles.xaml" />
+    <Resource Include="Windows\ImageEditor\Styles\AnimationStyles.xaml" />
   </ItemGroup>
 
 </Project>

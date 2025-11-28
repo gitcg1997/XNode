@@ -61,9 +61,12 @@ namespace NodeLib.File.Define
             return result;
         }
 
-        public override void LoadParaDict(string version, Dictionary<string, string> paraDict)
+        protected override void LoadParaDictInternal(Dictionary<string, string> paraDict)
         {
-            SetData(1, paraDict["FilePath"]);
+            if (paraDict.TryGetValue("FilePath", out string? filePathValue))
+                SetData(1, filePathValue);
+            else
+                SetData(1, "");
         }
 
         protected override NodeBase CloneNode() => new Func_GetFileMD5();

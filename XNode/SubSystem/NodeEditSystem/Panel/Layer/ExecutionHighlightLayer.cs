@@ -4,6 +4,9 @@ using System.Windows.Media.Effects;
 using XLib.Animate;
 using XLib.WPF.Drawing;
 using XNode.SubSystem.NodeEditSystem.Define;
+using WpfPoint = System.Windows.Point;
+using WpfPen = System.Windows.Media.Pen;
+using WpfBrush = System.Windows.Media.Brush;
 
 namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
 {
@@ -41,18 +44,18 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
                 HighlightBox.Height);
 
             // 创建毛玻璃背景
-            var glassBrush = CreateGlassBrush();
+            WpfBrush glassBrush = CreateGlassBrush();
             _dc.DrawRectangle(glassBrush, null, rect);
 
             // 创建发光边框
-            var glowPen = CreateGlowPen();
+            WpfPen glowPen = CreateGlowPen();
             var glowRect = new Rect(rect.X - 2, rect.Y - 2, rect.Width + 4, rect.Height + 4);
             _dc.DrawRectangle(null, glowPen, glowRect);
 
             // 创建脉冲效果边框
             if (PulseIntensity > 0)
             {
-                var pulsePen = CreatePulsePen();
+                WpfPen pulsePen = CreatePulsePen();
                 var pulseOffset = PulseIntensity * 5;
                 var pulseRect = new Rect(
                     rect.X - pulseOffset,
@@ -68,12 +71,12 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
         /// <summary>
         /// 创建毛玻璃画刷
         /// </summary>
-        private Brush CreateGlassBrush()
+        private WpfBrush CreateGlassBrush()
         {
             var gradientBrush = new LinearGradientBrush
             {
-                StartPoint = new Point(0, 0),
-                EndPoint = new Point(1, 1),
+                StartPoint = new WpfPoint(0, 0),
+                EndPoint = new WpfPoint(1, 1),
                 Opacity = HighlightOpacity
             };
 
@@ -88,25 +91,25 @@ namespace XNode.SubSystem.NodeEditSystem.Panel.Layer
         /// <summary>
         /// 创建发光画笔
         /// </summary>
-        private Pen CreateGlowPen()
+        private WpfPen CreateGlowPen()
         {
             var glowBrush = new SolidColorBrush(Color.FromArgb(200, 0, 188, 212))
             {
                 Opacity = GlowIntensity * 0.8
             };
-            return new Pen(glowBrush, 3);
+            return new WpfPen(glowBrush, 3);
         }
 
         /// <summary>
         /// 创建脉冲画笔
         /// </summary>
-        private Pen CreatePulsePen()
+        private WpfPen CreatePulsePen()
         {
             var pulseBrush = new SolidColorBrush(Color.FromArgb(100, 0, 255, 255))
             {
                 Opacity = 1.0 - PulseIntensity
             };
-            return new Pen(pulseBrush, 2);
+            return new WpfPen(pulseBrush, 2);
         }
 
         public double GetMotionProperty(string propertyName)

@@ -1,5 +1,7 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Input;
+using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
+using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace XNode.SubSystem.NodeEditSystem.Control.PropertyBar
 {
@@ -25,12 +27,12 @@ namespace XNode.SubSystem.NodeEditSystem.Control.PropertyBar
             Input_Value.Text = text;
         }
 
-        private void MainGrid_MouseEnter(object sender, MouseEventArgs e)
+        private void MainGrid_MouseEnter(object sender, WpfMouseEventArgs e)
         {
             Block_Title.Foreground = _hovered;
         }
 
-        private void MainGrid_MouseLeave(object sender, MouseEventArgs e)
+        private void MainGrid_MouseLeave(object sender, WpfMouseEventArgs e)
         {
             Block_Title.Foreground = _default;
         }
@@ -41,7 +43,7 @@ namespace XNode.SubSystem.NodeEditSystem.Control.PropertyBar
             Text = Input_Value.Text;
         }
 
-        private void Input_Value_KeyDown(object sender, KeyEventArgs e)
+        private void Input_Value_KeyDown(object sender, WpfKeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {

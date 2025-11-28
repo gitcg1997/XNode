@@ -3,6 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
+using WpfPoint = System.Windows.Point;
+using WpfColor = System.Windows.Media.Color;
 using XLib.Node;
 using XNode.SubSystem.NodeEditSystem.Define;
 using XNode.SubSystem.ResourceSystem;
@@ -75,10 +78,10 @@ namespace XNode.SubSystem.NodeEditSystem.Control
             throw new Exception("无命中引脚");
         }
 
-        public override Point GetPinOffset(NodeView card, int pinIndex)
+        public override WpfPoint GetPinOffset(NodeView card, int pinIndex)
         {
-            if (pinIndex == 0) return LeftPinArea.TranslatePoint(new Point(3, 8), card);
-            return RightPinArea.TranslatePoint(new Point(14, 8), card);
+            if (pinIndex == 0) return LeftPinArea.TranslatePoint(new WpfPoint(3, 8), card);
+            return RightPinArea.TranslatePoint(new WpfPoint(14, 8), card);
         }
 
         public override void UpdatePinIcon()
@@ -93,17 +96,17 @@ namespace XNode.SubSystem.NodeEditSystem.Control
 
         #region 控件事件
 
-        private void LeftPinArea_MouseEnter(object sender, MouseEventArgs e)
+        private void LeftPinArea_MouseEnter(object sender, WpfMouseEventArgs e)
         {
             HoveredPin = Instance.InputPin;
         }
 
-        private void RightPinArea_MouseEnter(object sender, MouseEventArgs e)
+        private void RightPinArea_MouseEnter(object sender, WpfMouseEventArgs e)
         {
             HoveredPin = Instance.OutputPin;
         }
 
-        private void PinArea_MouseLeave(object sender, MouseEventArgs e)
+        private void PinArea_MouseLeave(object sender, WpfMouseEventArgs e)
         {
             HoveredPin = null;
         }
@@ -112,7 +115,7 @@ namespace XNode.SubSystem.NodeEditSystem.Control
 
         #region 私有方法
 
-        private Color GetDataPinColor()
+        private WpfColor GetDataPinColor()
         {
             return Instance.Type switch
             {

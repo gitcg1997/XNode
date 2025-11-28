@@ -6,9 +6,9 @@
     public class Data_1_0
     {
         /// <summary>节点列表</summary>
-        public List<string> NodeList { get; set; } = new List<string>();
+        public List<NodeData> NodeList { get; set; } = new List<NodeData>();
 
         /// <summary>连接线列表</summary>
-        public List<string> ConnectLineList { get; set; } = new List<string>();
+        public List<ConnectLineData> ConnectLineList { get; set; } = new List<ConnectLineData>();
     }
 }

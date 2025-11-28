@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <RootNamespace>MaterialDesignColors</RootNamespace>
+    <AssemblyName>MaterialDesignColors</AssemblyName>
+    <TargetFrameworks>net462;net8.0-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <MDIXColorsVersion Condition="$(MDIXColorsVersion) == '' Or $(MDIXColorsVersion) == '*Undefined*'">1.0.1</MDIXColorsVersion>
+    <MDIXColorsVersion>$([System.Text.RegularExpressions.Regex]::Replace("$(MDIXColorsVersion)", "-ci\d+$", ""))</MDIXColorsVersion>
+    <AssemblyTitle>MaterialDesignColors.Wpf</AssemblyTitle>
+    <Product>MaterialDesignColors.Wpf</Product>
+    <Description>Material Design in XAML Toolkit - Colors</Description>
+    <Version>$(MDIXColorsVersion)</Version>
+    <AssemblyVersion>$(MDIXColorsVersion)</AssemblyVersion>
+    
+    <!-- Package Properties -->
+    <PackageId>MaterialDesignColors</PackageId>
+    <Title>Material Design Colors XAML Resources</Title>
+    <PackageDescription>ResourceDictionary instances containing standard Google Material Design swatches, for inclusion in a XAML application.</PackageDescription>
+    <PackageTags>WPF XAML Material Design Colour Color UI UX</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>MDIXColorsVersion</_Parameter1>
+      <_Parameter2>$(MDIXColorsVersion)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
